@@ -1,399 +1,294 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Cottage System – Dashboard</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Smart Cottage System — Accounts</title>
 
-<!-- Fonts & Icons -->
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
-
-<!-- Tailwind -->
-<link rel="stylesheet" href="https://unpkg.com/tailwindcss@2.2.19/dist/tailwind.min.css"/>
-
-<!-- Chart.js (NEW – added only) -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css?family=Nunito:400,700,800" rel="stylesheet">
+<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
 
 <style>
-:root{
-  --bg:#eef4ff;
-  --card:#ffffff;
-  --primary:#2563eb;
-  --text:#111827;
-  --muted:#6b7280;
-  --border:#e5e7eb;
+:root {
+  --primary:#1f6feb;
+  --bg:#e8f2ff;
 }
 
-*{box-sizing:border-box}
-
-body{
+* { box-sizing:border-box; }
+body {
   margin:0;
   font-family:Nunito,system-ui;
   background:var(--bg);
-  color:var(--text);
 }
 
-/* SIDEBAR */
-#sidebar{
-  width:64px;
-  transition:all .3s ease;
-  z-index:50;
-}
-#sidebar span{
-  opacity:0;
-  white-space:nowrap;
-  transition:opacity .2s ease;
-}
-#sidebar:hover{
-  width:170px;
-}
-#sidebar:hover span{
-  opacity:1;
-}
-
-/* MAIN SHIFT */
-.main{
-  margin-left:64px;
-  transition:margin-left .3s ease;
-  padding:24px;
-  height:100vh;
-  overflow:auto;
-}
-#sidebar:hover ~ .main{
-  margin-left:170px;
-}
-
-/* HEADER */
-.header{
+.page {
   display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:20px;
-}
-.header h1{
-  font-size:22px;
-  font-weight:800;
-}
-.profile{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-
-/* STATS */
-.stats{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:16px;
-  margin-bottom:20px;
-}
-.stat{
-  background:var(--card);
-  padding:16px;
-  border-radius:14px;
-  box-shadow:0 6px 16px rgba(0,0,0,.06);
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-.stat h3{
-  font-size:13px;
-  color:var(--muted);
-}
-.stat p{
-  font-size:22px;
-  font-weight:800;
-}
-
-/* GRID */
-.grid{
-  display:grid;
-  grid-template-columns:2fr 1fr;
   gap:20px;
+  padding:20px;
 }
 
-/* CARD */
-.card{
-  background:var(--card);
+/* LEFT DATABASE */
+.db-panel {
+  flex:1.3;
+  background:#fff;
+  padding:20px;
   border-radius:16px;
-  padding:18px;
-  box-shadow:0 8px 20px rgba(0,0,0,.06);
-}
-.card h3{
-  font-size:16px;
-  font-weight:800;
-  margin-bottom:12px;
+  box-shadow:0 10px 25px rgba(0,0,0,.08);
 }
 
-/* TABLE */
-table{
-  width:100%;
-  border-collapse:collapse;
+.cottages {
+  display:flex;
+  gap:10px;
+  margin-bottom:14px;
 }
-th,td{
+
+.cottages button {
+  flex:1;
   padding:10px;
-  border-bottom:1px solid var(--border);
-  font-size:13px;
-}
-th{
-  background:#f3f6ff;
-  text-align:left;
-}
-
-/* BUTTON */
-.btn{
-  background:var(--primary);
-  color:white;
-  border:none;
-  padding:8px 14px;
-  border-radius:8px;
-  font-size:13px;
+  border-radius:10px;
+  border:0;
+  background:#e5edff;
+  color:var(--primary);
+  font-weight:600;
   cursor:pointer;
 }
 
-/* LIST */
-.list{
+table {
+  width:100%;
+  border-collapse:collapse;
   font-size:13px;
 }
-.list div{
-  display:flex;
-  justify-content:space-between;
-  padding:10px 0;
-  border-bottom:1px solid var(--border);
+
+th, td {
+  padding:10px;
+  border-bottom:1px solid #e5e7eb;
+  text-align:left;
 }
 
-/* CHART */
-.chart{
-  height:240px;
-  background:#f8fafc;
-  border-radius:12px;
+th { color:#374151; }
+
+/* RIGHT FORM */
+.form-wrap {
+  flex:1;
+  background:#fff;
+  padding:20px;
+  border-radius:16px;
+  box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+label {
+  display:block;
+  margin-top:10px;
+  font-size:13px;
+}
+
+input, select {
+  width:100%;
   padding:10px;
+  margin-top:5px;
+  border-radius:8px;
+  border:1px solid #d1d5db;
+}
+
+input[readonly] {
+  background:#f3f4f6;
+}
+
+.actions {
+  display:flex;
+  gap:10px;
+  margin-top:14px;
+}
+
+button.primary {
+  flex:1;
+  background:var(--primary);
+  color:white;
+  border:0;
+  padding:12px;
+  border-radius:10px;
+  font-weight:600;
+}
+
+button.secondary {
+  flex:1;
+  background:transparent;
+  border:1px solid var(--primary);
+  color:var(--primary);
+  padding:12px;
+  border-radius:10px;
+}
+
+#log {
+  margin-top:12px;
+  font-size:13px;
+  min-height:20px;
 }
 </style>
 </head>
 
-<body class="flex">
+<body>
 
-<!-- SIDEBAR -->
-<div id="sidebar" class="fixed h-screen bg-white shadow px-4">
-  <ul class="mt-10 space-y-6 text-gray-600">
+<div class="page">
 
-    <!-- Dashboard -->
-    <li>
-      <a href="index.html" class="flex items-center hover:text-blue-500">
-        <i class="fas fa-home w-6 text-center"></i>
-        <span class="ml-3">Dashboard</span>
-      </a>
-    </li>
+<!-- LEFT: DATABASE -->
+<div class="db-panel">
+  <h3>Cottages</h3>
 
-    <!-- Accounts (active page) -->
-    <li>
-      <a href="accounts.html" class="flex items-center text-blue-600 font-semibold">
-        <i class="fas fa-users w-6 text-center"></i>
-        <span class="ml-3">Accounts</span>
-      </a>
-    </li>
+  <div class="cottages">
+    <button onclick="loadCottage('COTTAGE-1')">Cottage 1</button>
+    <button onclick="loadCottage('COTTAGE-2')">Cottage 2</button>
+    <button onclick="loadCottage('COTTAGE-3')">Cottage 3</button>
+    <button onclick="loadCottage('COTTAGE-4')">Cottage 4</button>
+  </div>
 
-    <!-- Logout -->
-    <li class="pt-6 border-t">
-      <a class="flex items-center hover:text-red-500">
-        <i class="fas fa-sign-out-alt w-6 text-center"></i>
-        <span class="ml-3">Logout</span>
-      </a>
-    </li>
-
-  </ul>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Employee ID</th>
+        <th>Valid Until</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="userRows"></tbody>
+  </table>
 </div>
 
+<!-- RIGHT: REGISTRATION -->
+<div class="form-wrap">
+  <h3>Register Card</h3>
 
+  <label>Card UID
+    <input id="uid" readonly placeholder="Tap card">
+  </label>
 
-<!-- MAIN -->
-<div class="main">
+  <label>Name
+    <input id="name">
+  </label>
 
-  <!-- HEADER -->
-  <div class="header">
-    <h1>Dashboard</h1>
-    <div class="profile">
-      <i class="far fa-bell"></i>
-      <strong>Admin</strong>
-    </div>
+  <label>Employee ID
+    <input id="employee_id">
+  </label>
+
+  <label>Access Level
+    <select id="access_level">
+      <option value="guest">Guest</option>
+      <option value="basic">Basic</option>
+      <option value="premium">Premium</option>
+      <option value="admin">Admin</option>
+    </select>
+  </label>
+
+  <label>Valid Until
+    <input type="date" id="valid_until">
+  </label>
+
+  <label>Cottage
+    <select id="cottage">
+      <option>COTTAGE-1</option>
+      <option>COTTAGE-2</option>
+      <option>COTTAGE-3</option>
+      <option>COTTAGE-4</option>
+    </select>
+  </label>
+
+  <div class="actions">
+    <button class="primary" onclick="save()">Save</button>
+    <button class="secondary" onclick="clearForm()">Clear</button>
   </div>
 
-  <!-- STATS -->
-  <div class="stats">
-    <div class="stat">
-      <div>
-        <h3>Total Cottages</h3>
-        <p>—</p>
-      </div>
-      <i class="fas fa-home"></i>
-    </div>
+  <div id="log">Waiting for card…</div>
+</div>
 
-    <div class="stat">
-      <div>
-        <h3>Active Guests</h3>
-        <p id="activeGuests">0</p>
-      </div>
-      <i class="fas fa-user-friends"></i>
-    </div>
-
-    <div class="stat">
-      <div>
-        <h3>Revenue</h3>
-        <p>—</p>
-      </div>
-      <i class="fas fa-wallet"></i>
-    </div>
-
-    <div class="stat">
-      <div>
-        <h3>Occupancy</h3>
-        <p>—</p>
-      </div>
-      <i class="fas fa-chart-pie"></i>
-    </div>
-  </div>
-
-  <!-- GRID -->
-  <div class="grid">
-
-    <!-- TABLE -->
-    <div class="card">
-      <div class="flex justify-between items-center mb-3">
-        <h3>Registered Cards Database</h3>
-        <button class="btn" id="refreshBtn">Update Database</button>
-      </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Employee ID</th>
-            <th>Access Level</th>
-            <th>Valid Until</th>
-            <th>Cottage</th>
-          </tr>
-        </thead>
-        <tbody id="usersTable"></tbody>
-      </table>
-    </div>
-
-    <!-- RIGHT COLUMN -->
-    <div class="grid gap-5">
-
-      <div class="card">
-        <h3>Recent Bookings</h3>
-        <div class="list">
-          <div><span>—</span><span>—</span></div>
-        </div>
-      </div>
-
-      <!-- 🔥 NEW BAR CHART (ADDED ONLY) -->
-      <div class="card">
-        <h3>User Access Distribution</h3>
-        <div class="chart">
-          <canvas id="userBarChart"></canvas>
-        </div>
-      </div>
-
-    </div>
-  </div>
 </div>
 
 <script>
-const API_BASE = "";
+const socket = io();
+let activeCottage = null;
+let cardStillValid = false;
 
-async function loadUsers(){
-  const res = await fetch(`${API_BASE}/api/users`);
+socket.on("card_tapped", data => {
+  document.getElementById("uid").value = data.uid;
+
+  if (data.access === "granted") {
+    cardStillValid = true;
+    logMsg("Card already registered — ACCESS GRANTED (registration blocked)", "#b45309");
+  } else {
+    cardStillValid = false;
+    logMsg("New or expired card — ready to register", "#15803d");
+  }
+});
+
+function logMsg(msg, color) {
+  const log = document.getElementById("log");
+  log.textContent = msg;
+  log.style.color = color;
+}
+
+async function save() {
+  if (cardStillValid) {
+    logMsg("❌ Card is still valid. Cannot re-register.", "#b91c1c");
+    return;
+  }
+
+  const payload = {
+    uid: uid.value,
+    name: name.value,
+    employee_id: employee_id.value,
+    access_level: access_level.value,
+    valid_until: valid_until.value,
+    cottage: cottage.value
+  };
+
+  const res = await fetch("/api/register_card", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify(payload)
+  });
+
+  if (res.status === 409) {
+    logMsg("❌ Card still valid. Registration blocked.", "#b91c1c");
+    return;
+  }
+
+  logMsg("✅ Card registered", "#15803d");
+  clearForm();
+  if (activeCottage) loadCottage(activeCottage);
+}
+
+function clearForm() {
+  document.querySelectorAll("input").forEach(i => i.value = "");
+}
+
+async function loadCottage(cottage) {
+  activeCottage = cottage;
+  const res = await fetch(`/api/users/${cottage}`);
   const users = await res.json();
 
-  document.getElementById("activeGuests").textContent = users.length;
-
-  const tbody = document.getElementById("usersTable");
+  const tbody = document.getElementById("userRows");
   tbody.innerHTML = "";
 
-  users.forEach(u=>{
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${u.name || "-"}</td>
-      <td>${u.employee_id || "-"}</td>
-      <td>${u.access_level || "-"}</td>
-      <td>${u.valid_until || "-"}</td>
-      <td>${u.cottage || "-"}</td>
+  users.forEach(u => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${u.name}</td>
+        <td>${u.employee_id || "-"}</td>
+        <td>${u.valid_until || "-"}</td>
+        <td>${u.created_at || "-"}</td>
+        <td>
+          <button onclick="deleteUser('${u.uid}')">🗑</button>
+        </td>
+      </tr>
     `;
-    tbody.appendChild(tr);
   });
 }
 
-let userChart = null;
-
-async function loadUserChart(){
-  const res = await fetch("/api/user_counts");
-  const counts = await res.json();
-
-  const labels = ["Guest", "Basic", "Premium", "Admin"];
-  const values = [
-    counts.guest || 0,
-    counts.basic || 0,
-    counts.premium || 0,
-    counts.admin || 0
-  ];
-
-  const total = values.reduce((a,b)=>a+b,0) || 1;
-  const percentages = values.map(v => ((v / total) * 100).toFixed(1));
-
-  if(userChart) userChart.destroy();
-
-  userChart = new Chart(
-    document.getElementById("userBarChart"),
-    {
-      type: "bar",
-      data: {
-        labels,
-        datasets: [{
-          label: "Users (%)",
-          data: percentages,
-          backgroundColor: [
-            "#60a5fa",
-            "#34d399",
-            "#fbbf24",
-            "#f87171"
-          ],
-          borderRadius: 8
-        }]
-      },
-      options: {
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: ctx =>
-                `${ctx.raw}% (${values[ctx.dataIndex]} users)`
-            }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            max: 100,
-            ticks: {
-              callback: v => v + "%"
-            }
-          }
-        }
-      }
-    }
-  );
+async function deleteUser(uid) {
+  await fetch(`/api/users/${uid}`, { method:"DELETE" });
+  if (activeCottage) loadCottage(activeCottage);
 }
-
-document.getElementById("refreshBtn").onclick = () => {
-  loadUsers();
-  loadUserChart();
-};
-
-loadUsers();
-loadUserChart();
 </script>
 
 </body>
