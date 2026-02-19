@@ -15,6 +15,7 @@
 }
 
 * { box-sizing:border-box; }
+
 body {
   margin:0;
   font-family:Nunito,system-ui;
@@ -27,7 +28,7 @@ body {
   padding:20px;
 }
 
-/* LEFT DATABASE */
+/* LEFT */
 .db-panel {
   flex:1.3;
   background:#fff;
@@ -62,12 +63,9 @@ table {
 th, td {
   padding:10px;
   border-bottom:1px solid #e5e7eb;
-  text-align:left;
 }
 
-th { color:#374151; }
-
-/* RIGHT FORM */
+/* RIGHT */
 .form-wrap {
   flex:1;
   background:#fff;
@@ -123,6 +121,7 @@ button.secondary {
   margin-top:12px;
   font-size:13px;
   min-height:20px;
+  font-weight:600;
 }
 </style>
 </head>
@@ -131,7 +130,7 @@ button.secondary {
 
 <div class="page">
 
-<!-- LEFT: DATABASE -->
+<!-- LEFT TABLE -->
 <div class="db-panel">
   <h3>Cottages</h3>
 
@@ -156,7 +155,7 @@ button.secondary {
   </table>
 </div>
 
-<!-- RIGHT: REGISTRATION -->
+<!-- RIGHT FORM -->
 <div class="form-wrap">
   <h3>Register Card</h3>
 
@@ -206,65 +205,105 @@ button.secondary {
 
 <script>
 const socket = io();
+
 let activeCottage = null;
 let cardStillValid = false;
 
+const uid = document.getElementById("uid");
+const nameInput = document.getElementById("name");
+const employeeInput = document.getElementById("employee_id");
+const accessInput = document.getElementById("access_level");
+const validInput = document.getElementById("valid_until");
+const cottageInput = document.getElementById("cottage");
+
+/* -------------------------
+   SOCKET EVENTS
+--------------------------*/
 socket.on("card_tapped", data => {
-  document.getElementById("uid").value = data.uid;
+  uid.value = data.uid;
 
   if (data.access === "granted") {
     cardStillValid = true;
-    logMsg("Card already registered — ACCESS GRANTED (registration blocked)", "#b45309");
+    logMsg("Card already registered — ACCESS GRANTED", "#b45309");
   } else {
     cardStillValid = false;
-    logMsg("New or expired card — ready to register", "#15803d");
+    logMsg("New/expired card — ready to register", "#15803d");
   }
 });
 
-function logMsg(msg, color) {
+/* -------------------------
+   HELPERS
+--------------------------*/
+function logMsg(msg, color="#000") {
   const log = document.getElementById("log");
   log.textContent = msg;
   log.style.color = color;
 }
 
+function clearForm() {
+  nameInput.value = "";
+  employeeInput.value = "";
+  validInput.value = "";
+  cardStillValid = false;
+}
+
+/* -------------------------
+   SAVE USER
+--------------------------*/
 async function save() {
+
+  if (!uid.value || !nameInput.value) {
+    logMsg("❌ Tap card + enter name first", "#b91c1c");
+    return;
+  }
+
   if (cardStillValid) {
-    logMsg("❌ Card is still valid. Cannot re-register.", "#b91c1c");
+    logMsg("❌ Card still valid. Cannot re-register.", "#b91c1c");
     return;
   }
 
   const payload = {
     uid: uid.value,
-    name: name.value,
-    employee_id: employee_id.value,
-    access_level: access_level.value,
-    valid_until: valid_until.value,
-    cottage: cottage.value
+    name: nameInput.value,
+    employee_id: employeeInput.value,
+    access_level: accessInput.value,
+    valid_until: validInput.value,
+    cottage: cottageInput.value
   };
 
-  const res = await fetch("/api/register_card", {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify(payload)
-  });
+  try {
+    const res = await fetch("/api/register_card", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify(payload)
+    });
 
-  if (res.status === 409) {
-    logMsg("❌ Card still valid. Registration blocked.", "#b91c1c");
-    return;
+    const data = await res.json();
+
+    if (!res.ok) {
+      logMsg("❌ " + (data.error || "Save failed"), "#b91c1c");
+      return;
+    }
+
+    logMsg("✅ Card registered", "#15803d");
+    clearForm();
+
+    if (activeCottage)
+      loadCottage(activeCottage);
+
+  } catch(err) {
+    logMsg("❌ Server offline", "#b91c1c");
   }
-
-  logMsg("✅ Card registered", "#15803d");
-  clearForm();
-  if (activeCottage) loadCottage(activeCottage);
 }
 
-function clearForm() {
-  document.querySelectorAll("input").forEach(i => i.value = "");
-}
-
+/* -------------------------
+   LOAD USERS (FIXED ROUTE)
+--------------------------*/
 async function loadCottage(cottage) {
+
   activeCottage = cottage;
-  const res = await fetch(`/api/users/${cottage}`);
+
+  const res = await fetch(`/api/users?cottage=${cottage}`);
   const users = await res.json();
 
   const tbody = document.getElementById("userRows");
@@ -285,6 +324,9 @@ async function loadCottage(cottage) {
   });
 }
 
+/* -------------------------
+   DELETE
+--------------------------*/
 async function deleteUser(uid) {
   await fetch(`/api/users/${uid}`, { method:"DELETE" });
   if (activeCottage) loadCottage(activeCottage);
