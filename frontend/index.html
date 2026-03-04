@@ -235,7 +235,7 @@ loadUsers();
 
 <script>
 /*********** SERVO CLOCK LOGIC ***********/
-const ESP_IP = "192.168.100.202";
+const RPI_IP = "192.168.100.50:5000";
 const canvas = document.getElementById("clockCanvas");
 const ctx = canvas.getContext("2d");
 const radius = canvas.width/2;
@@ -341,12 +341,16 @@ setTimeBtn.addEventListener("click",()=>{
   if(hour===18) triggerServoFromClock(18);
 });
 
-// SEND TO ESP32
+
+
+
 function triggerServoFromClock(hour){
   servoRunning=true;
   document.getElementById("servoStatus").textContent="Servo Status: Rotating";
+
   let cmd=hour===6?"6AM":"6PM";
-  fetch(`http://${ESP_IP}/${cmd.toLowerCase()}`)
+
+  fetch(`http://${RPI_IP}/${cmd.toLowerCase()}`)
     .then(res=>res.text())
     .then(data=>{
       console.log("Servo Triggered:",data);
