@@ -54,7 +54,7 @@ body{
   margin-left:64px;
   transition:margin-left .3s ease;
   padding:24px;
-  height:100vh;
+  min-height:100vh;
   overflow:auto;
 }
 #sidebar:hover ~ .main{
@@ -171,6 +171,41 @@ th{
   color:#2563eb;
   font-weight:700;
 }
+
+/* SERVO CONTROL */
+.servo-container{
+  background: linear-gradient(135deg, #1f1c2c, #928dab);
+  color: white;
+  border-radius:16px;
+  padding:24px;
+  margin-top:40px;
+  text-align:center;
+}
+.servo-container h2{
+  font-size:22px;
+  margin-bottom:20px;
+  font-weight:bold;
+}
+.servo-container button{
+  padding:16px 32px;
+  font-size:18px;
+  margin:10px;
+  border-radius:12px;
+  border:none;
+  cursor:pointer;
+  font-weight:bold;
+}
+.btn-am{
+  background:#4CAF50;
+  color:white;
+}
+.btn-pm{
+  background:#FF5722;
+  color:white;
+}
+.btn-am:hover, .btn-pm:hover{
+  transform:scale(1.05);
+}
 </style>
 </head>
 
@@ -206,7 +241,6 @@ th{
 
   </ul>
 </div>
-
 
 <!-- MAIN -->
 <div class="main">
@@ -293,6 +327,14 @@ th{
     </div>
 
   </div>
+
+  <!-- SERVO CONTROL SECTION -->
+  <div class="servo-container">
+    <h2>Servo Control</h2>
+    <button class="btn-am" onclick="send6AM()">6 AM</button>
+    <button class="btn-pm" onclick="send6PM()">6 PM</button>
+  </div>
+
 </div>
 
 <script>
@@ -322,6 +364,23 @@ async function loadUsers(){
 
 document.getElementById("refreshBtn").onclick = loadUsers;
 loadUsers();
+
+// ===== Servo Control Script =====
+const ESP_IP = "192.168.100.202";
+
+function send6AM() {
+  fetch(`http://${ESP_IP}/6am`)
+    .then(res => res.text())
+    .then(data => console.log(data))
+    .catch(err => console.error(err));
+}
+
+function send6PM() {
+  fetch(`http://${ESP_IP}/6pm`)
+    .then(res => res.text())
+    .then(data => console.log(data))
+    .catch(err => console.error(err));
+}
 </script>
 
 </body>
