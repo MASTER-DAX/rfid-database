@@ -207,33 +207,6 @@ th{background:#3d4256;text-align:left;}
 </div>
 
 <script>
-const API_BASE = "";
-async function loadUsers(){
-  try{
-    const res = await fetch(`${API_BASE}/api/users`);
-    const users = await res.json();
-    document.getElementById("activeGuests").textContent = users.length;
-
-    const tbody = document.getElementById("usersTable");
-    tbody.innerHTML = "";
-    users.forEach(u=>{
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${u.name||"-"}</td>
-        <td>${u.employee_id||"-"}</td>
-        <td>${u.access_level||"-"}</td>
-        <td>${u.valid_until||"-"}</td>
-        <td>${u.cottage||"-"}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }catch(e){console.error(e);}
-}
-document.getElementById("refreshBtn").onclick = loadUsers;
-loadUsers();
-</script>
-
-<script>
 /*********** SERVO CLOCK LOGIC ***********/
 const RPI_IP = "192.168.100.180:5000";
 const canvas = document.getElementById("clockCanvas");
@@ -250,7 +223,6 @@ let servoRunning = false;
 function drawClock(){
   ctx.clearRect(-radius,-radius,canvas.width,canvas.height);
 
-  // clock face
   ctx.beginPath();
   ctx.arc(0,0,radius-5,0,2*Math.PI);
   ctx.fillStyle = "#3a3f50";
@@ -259,7 +231,6 @@ function drawClock(){
   ctx.lineWidth = 4;
   ctx.stroke();
 
-  // hour marks
   for(let i=0;i<12;i++){
     let angle=i*Math.PI/6;
     ctx.beginPath();
@@ -270,7 +241,6 @@ function drawClock(){
     ctx.stroke();
   }
 
-  // hour hand
   let hourAngle = ((currentHour%12)+currentMinute/60)*Math.PI/6;
   ctx.beginPath();
   ctx.moveTo(0,0);
@@ -279,7 +249,6 @@ function drawClock(){
   ctx.lineWidth=6;
   ctx.stroke();
 
-  // minute hand
   let minAngle = (currentMinute/60)*2*Math.PI;
   ctx.beginPath();
   ctx.moveTo(0,0);
@@ -288,7 +257,6 @@ function drawClock(){
   ctx.lineWidth=4;
   ctx.stroke();
 
-  // second hand
   let secAngle = (currentSecond/60)*2*Math.PI;
   ctx.beginPath();
   ctx.moveTo(0,0);
@@ -307,60 +275,104 @@ function updateTime(){
 }
 setInterval(updateTime,1000);
 
-// DRAG LOGIC
 canvas.addEventListener("mousedown", e=>{dragging=true; updateClockFromMouse(e);});
 canvas.addEventListener("mousemove", e=>{if(dragging) updateClockFromMouse(e);});
-canvas.addEventListener("mouseup", e=>{dragging=false;});
-canvas.addEventListener("mouseleave", e=>{dragging=false;});
+canvas.addEventListener("mouseup", ()=>{dragging=false;});
+canvas.addEventListener("mouseleave", ()=>{dragging=false;});
 
 function updateClockFromMouse(e){
   const rect = canvas.getBoundingClientRect();
   const x=e.clientX-rect.left-radius;
   const y=e.clientY-rect.top-radius;
+
   let angle=Math.atan2(y,x)+Math.PI/2;
   if(angle<0) angle+=2*Math.PI;
+
   let h=Math.floor(angle/(Math.PI/6));
-  currentHour=h;
+
+  let hour24 = h;
+
+  if(ampmInput.value==="PM" && h!==12){
+    hour24 = h + 12;
+  }
+
+  if(ampmInput.value==="AM" && h===12){
+    hour24 = 0;
+  }
+
+  currentHour = hour24;
+
   drawClock();
-  if(currentHour===6) triggerServoFromClock(6);
-  if(currentHour===18) triggerServoFromClock(18);
+
+  if(currentHour===6 && !servoRunning){
+    triggerServoFromClock(6);
+  }
+
+  if(currentHour===18 && !servoRunning){
+    triggerServoFromClock(18);
+  }
 }
 
-// INPUT SET LOGIC
 const hourInput = document.getElementById("hourInput");
 const ampmInput = document.getElementById("ampmInput");
 const setTimeBtn = document.getElementById("setTimeBtn");
+
 setTimeBtn.addEventListener("click",()=>{
+
   let hour = parseInt(hourInput.value);
   const ampm = ampmInput.value;
-  if(ampm==="PM" && hour<12) hour+=12;
-  if(ampm==="AM" && hour===12) hour=0;
-  currentHour=hour%12;
+
+  let hour24 = hour;
+
+  if(ampm==="PM" && hour !== 12){
+    hour24 = hour + 12;
+  }
+
+  if(ampm==="AM" && hour === 12){
+    hour24 = 0;
+  }
+
+  currentHour = hour24;
+
   drawClock();
-  if(hour===6) triggerServoFromClock(6);
-  if(hour===18) triggerServoFromClock(18);
+
+  if(hour24 === 6 && !servoRunning){
+    triggerServoFromClock(6);
+  }
+
+  if(hour24 === 18 && !servoRunning){
+    triggerServoFromClock(18);
+  }
+
 });
 
-
-
-
 function triggerServoFromClock(hour){
+
   servoRunning=true;
   document.getElementById("servoStatus").textContent="Servo Status: Rotating";
 
   let cmd=hour===6?"6AM":"6PM";
 
+  console.log("Sending command:",cmd);
+
   fetch(`http://${RPI_IP}/${cmd.toLowerCase()}`)
     .then(res=>res.text())
     .then(data=>{
       console.log("Servo Triggered:",data);
+
       setTimeout(()=>{
         servoRunning=false;
         document.getElementById("servoStatus").textContent="Servo Status: Idle";
       },15000);
-    }).catch(err=>console.error(err));
-}
-</script>
 
+    }).catch(err=>{
+      console.error("Error contacting Raspberry Pi:",err);
+      servoRunning=false;
+    });
+
+}
+
+drawClock();
+</script>
 </body>
 </html>
