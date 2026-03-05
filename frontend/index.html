@@ -208,7 +208,6 @@ th{background:#3d4256;text-align:left;}
 
 <script>
 /*********** SERVO CLOCK LOGIC ***********/
-const RPI_IP = "192.168.100.180:5000";
 const canvas = document.getElementById("clockCanvas");
 const ctx = canvas.getContext("2d");
 const radius = canvas.width/2;
@@ -347,29 +346,26 @@ setTimeBtn.addEventListener("click",()=>{
 });
 
 function triggerServoFromClock(hour){
-
   servoRunning=true;
   document.getElementById("servoStatus").textContent="Servo Status: Rotating";
 
-  let cmd=hour===6?"6AM":"6PM";
+  let endpoint = hour === 6 ? "/api/pi/6am" : "/api/pi/6pm";
 
-  console.log("Sending command:",cmd);
-
-  fetch(`http://${RPI_IP}/${cmd.toLowerCase()}`)
-    .then(res=>res.text())
-    .then(data=>{
-      console.log("Servo Triggered:",data);
+  fetch(endpoint)
+    .then(res => res.json())
+    .then(data => {
+      console.log("Pi Response:", data);
 
       setTimeout(()=>{
         servoRunning=false;
         document.getElementById("servoStatus").textContent="Servo Status: Idle";
       },15000);
-
-    }).catch(err=>{
-      console.error("Error contacting Raspberry Pi:",err);
+    })
+    .catch(err => {
+      console.error("Error contacting server:", err);
       servoRunning=false;
+      document.getElementById("servoStatus").textContent="Servo Status: Idle";
     });
-
 }
 
 drawClock();
