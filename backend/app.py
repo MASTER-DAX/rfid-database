@@ -3,13 +3,15 @@ import os
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_socketio import SocketIO
-from db import get_users
 from db import (
+    get_users,
     find_user_by_name_and_employee,
     register_user,
     find_user_by_uid,
     count_users_by_access_level,
-    trigger_buzzer_event
+    trigger_buzzer_event,
+    get_cottage_status,
+    set_cottage_status
 )
 
 # -------------------------------------------------
@@ -58,8 +60,9 @@ def tap_card():
         "user": user
     })
 
-
-
+# -------------------------------------------------
+# Get all users
+# -------------------------------------------------
 @app.route("/api/users")
 def get_all_users():
     cottage = request.args.get("cottage")
@@ -67,6 +70,7 @@ def get_all_users():
 
     users = get_users(cottage=cottage, sort_by=sort_by)
     return jsonify(users)
+
 # -------------------------------------------------
 # ESP32 CHECK ACCESS
 # -------------------------------------------------
@@ -106,7 +110,6 @@ def check_access():
 
     return jsonify({"access": "granted"})
 
-
 # -------------------------------------------------
 # Admin → Login User (for Mobile App)
 # -------------------------------------------------
@@ -119,7 +122,6 @@ def login_user():
     if not name or not employee_id:
         return jsonify({"success": False, "message": "name and employee_id required"}), 400
 
-    # Use helper function
     user = find_user_by_name_and_employee(name, employee_id)
 
     if not user:
@@ -156,7 +158,6 @@ def register_card():
         "uid": uid,
         "name": name,
         "employee_id": employee_id,
-        # ✅ SAFETY: force lowercase + default guest
         "access_level": access_level.lower() if access_level else "guest",
         "valid_until": valid_until,
         "cottage": cottage
@@ -166,19 +167,14 @@ def register_card():
 
     return jsonify({"status": "saved"})
 
-
 # -------------------------------------------------
 # DASHBOARD: Get counts by access level
-# -------------------------------------------------
-# -------------------------------------------------
-# DASHBOARD: Get counts by access level (mapped for graph)
 # -------------------------------------------------
 @app.route("/api/user_counts")
 def user_counts():
     counts = count_users_by_access_level()
     print("User counts:", counts)
     return jsonify(counts)
-
 
 # -------------------------------------------------
 # USER LOGIN (UID + NAME) → RFID login
@@ -201,7 +197,6 @@ def login_rfid():
             "message": "User not found"
         }), 401
 
-    # Case-insensitive name check
     if user.get("name", "").lower() != name.lower():
         return jsonify({
             "success": False,
@@ -218,6 +213,35 @@ def login_rfid():
         }
     })
 
+# -------------------------------------------------
+# Cottage Status API
+# -------------------------------------------------
+@app.route("/api/cottage_status", methods=["GET"])
+def api_cottage_status():
+    cottage_id = request.args.get("cottage")
+    if not cottage_id:
+        return jsonify({"error": "cottage required"}), 400
+
+    status = get_cottage_status(cottage_id)
+    return jsonify({"cottage": cottage_id, "status": status})
+
+@app.route("/set_cottage_status", methods=["POST"])
+def api_set_cottage_status():
+    data = request.get_json() or {}
+    cottage_id = data.get("cottage")
+    status = data.get("status")
+
+    if not cottage_id or not status:
+        return jsonify({"error": "cottage and status required"}), 400
+
+    set_cottage_status(cottage_id, status)
+
+    socketio.emit("cottage_status_changed", {
+        "cottage": cottage_id,
+        "status": status.lower()
+    })
+
+    return jsonify({"status": "ok", "cottage": cottage_id, "new_status": status.lower()})
 
 # -------------------------------------------------
 # RUN SERVER
