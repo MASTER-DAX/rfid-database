@@ -1,7 +1,6 @@
 # admin_app.py
 import os
 from flask import Flask, request, jsonify, send_from_directory
-import requests
 from flask_cors import CORS
 from flask_socketio import SocketIO
 from db import get_users
@@ -219,23 +218,6 @@ def login_rfid():
         }
     })
 
-PI_IP = "http://192.168.100.180:5000"  # your Pi's HTTP server
-
-@app.route("/api/pi/6am")
-def pi_6am():
-    try:
-        resp = requests.get(f"{PI_IP}/6am", timeout=5)
-        return {"status": "ok", "pi_response": resp.text}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}, 500
-
-@app.route("/api/pi/6pm")
-def pi_6pm():
-    try:
-        resp = requests.get(f"{PI_IP}/6pm", timeout=5)
-        return {"status": "ok", "pi_response": resp.text}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}, 500
 
 # -------------------------------------------------
 # RUN SERVER
