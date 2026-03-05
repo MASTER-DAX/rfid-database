@@ -196,10 +196,40 @@ th{background:#3d4256;text-align:left;}
         <p style="text-align:center; margin-top:5px;" id="servoStatus">Servo Status: Idle</p>
       </div>
 
-      <div class="card">
-        <h3>Cottage Occupancy</h3>
-        <div class="chart">CHART PLACEHOLDER</div>
-      </div>
+     <!-- Cottage Status Control -->
+<div class="card">
+  <h3>Cottages Status</h3>
+
+  <div style="margin-top:10px;">
+    <label>Select Cottage</label>
+    <select id="cottageSelect">
+      <option value="1">Cottage 1</option>
+      <option value="2">Cottage 2</option>
+      <option value="3">Cottage 3</option>
+      <option value="4">Cottage 4</option>
+      <option value="5">Cottage 5</option>
+      <option value="6">Cottage 6</option>
+      <option value="7">Cottage 7</option>
+      <option value="8">Cottage 8</option>
+      <option value="9">Cottage 9</option>
+      <option value="10">Cottage 10</option>
+    </select>
+  </div>
+
+  <div style="margin-top:10px;">
+    <label>Status</label>
+    <select id="statusSelect">
+      <option value="active">ACTIVE</option>
+      <option value="inactive">INACTIVE</option>
+    </select>
+  </div>
+
+  <button onclick="setCottageStatus()" style="margin-top:10px;">
+    Update Status
+  </button>
+
+  <p id="statusResult"></p>
+</div>
 
     </div>
 
@@ -207,6 +237,40 @@ th{background:#3d4256;text-align:left;}
 </div>
 
 <script>
+
+async function setCottageStatus(){
+
+  let cottage = document.getElementById("cottageSelect").value;
+  let status = document.getElementById("statusSelect").value;
+
+  try{
+
+    let res = await fetch("/set_cottage_status",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        cottage:cottage,
+        status:status
+      })
+    });
+
+    let data = await res.json();
+
+    document.getElementById("statusResult").innerText =
+      "Cottage " + cottage + " is now " + status.toUpperCase();
+
+  }catch(err){
+
+    document.getElementById("statusResult").innerText =
+      "Server error updating cottage status";
+
+    console.error(err);
+
+  }
+
+}
 const API_BASE = "";
 async function loadUsers(){
   try{
