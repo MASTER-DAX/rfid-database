@@ -4,4 +4,4 @@ flask-socketio
 pymongo
 python-dotenv
 eventlet
-requests
+
