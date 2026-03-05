@@ -1,9 +1,9 @@
+# db.py
 from pymongo import MongoClient
 import os
 from datetime import datetime
 
 MONGO_URI = os.getenv("MONGO_URI")
-
 if not MONGO_URI:
     raise RuntimeError("MONGO_URI environment variable not set")
 
@@ -17,10 +17,10 @@ except Exception as e:
     raise
 
 db = client["rfid_system"]
-   # ✅ MATCH URI
 
 users = db["users"]
 taps = db["taps"]
+cottages = db["cottages"]
 
 # ------------------------
 # USER OPERATIONS
@@ -32,18 +32,14 @@ def get_users(cottage=None, sort_by=None):
 
     users_list = list(users.find(query, {"_id": 0}))
 
-    # ---- SORTING ----
     if sort_by == "date_desc":
         users_list.sort(
             key=lambda x: x.get("created_at", datetime.min),
             reverse=True
         )
-
     elif sort_by == "access_level":
         order = {"premium": 1, "basic": 2, "guest": 3, "admin": 4}
-        users_list.sort(
-            key=lambda x: order.get(x.get("access_level", ""), 99)
-        )
+        users_list.sort(key=lambda x: order.get(x.get("access_level", ""), 99))
 
     return users_list
 
@@ -60,23 +56,17 @@ def find_user_by_name_and_employee(name, employee_id):
         print("DB ERROR:", e)
         return None
 
-
 def register_user(doc):
     doc["created_at"] = datetime.utcnow()
     users.replace_one({"uid": doc["uid"]}, doc, upsert=True)
     return True
 
-
 def find_user_by_uid(uid):
     return users.find_one({"uid": uid}, {"_id": 0})
-
 
 def trigger_buzzer_event(uid):
     taps.insert_one({"uid": uid, "ts": datetime.utcnow()})
 
-# ------------------------
-# DASHBOARD STATS
-# ------------------------
 def count_users_by_access_level():
     counts = {"guest": 0, "basic": 0, "premium": 0, "admin": 0}
     for user in users.find({}, {"access_level": 1}):
@@ -84,3 +74,21 @@ def count_users_by_access_level():
         if level in counts:
             counts[level] += 1
     return counts
+
+# ------------------------
+# COTTAGE STATUS OPERATIONS
+# ------------------------
+def get_cottage_status(cottage_id):
+    """Return 'active' or 'inactive', default to 'active'"""
+    cottage = cottages.find_one({"cottage": str(cottage_id)}, {"_id": 0})
+    if not cottage:
+        return "active"
+    return cottage.get("status", "active")
+
+def set_cottage_status(cottage_id, status):
+    """Set cottage status"""
+    cottages.update_one(
+        {"cottage": str(cottage_id)},
+        {"$set": {"status": status.lower()}},
+        upsert=True
+    )
