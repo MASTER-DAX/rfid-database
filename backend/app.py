@@ -244,6 +244,26 @@ def api_set_cottage_status():
     return jsonify({"status": "ok", "cottage": cottage_id, "new_status": status.lower()})
 
 # -------------------------------------------------
+# NEW: Servo Trigger Routes (6AM / 6PM)
+# -------------------------------------------------
+@app.route("/api/trigger_servo", methods=["POST"])
+def api_trigger_servo():
+    data = request.get_json() or {}
+    command = data.get("command")  # Expected: "6AM" or "6PM"
+    cottage = data.get("cottage", "1")  # optional
+
+    if command not in ["6AM", "6PM"]:
+        return jsonify({"error": "Invalid command"}), 400
+
+    # Emit to ESP32 / front-end via SocketIO
+    socketio.emit("servo_trigger", {
+        "cottage": cottage,
+        "command": command
+    })
+
+    return jsonify({"status": "ok", "command": command})
+
+# -------------------------------------------------
 # RUN SERVER
 # -------------------------------------------------
 if __name__ == "__main__":
