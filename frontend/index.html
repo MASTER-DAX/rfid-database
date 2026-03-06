@@ -237,7 +237,6 @@ th{background:#3d4256;text-align:left;}
 </div>
 
 <script>
-
 async function setCottageStatus(){
 
   let cottage = document.getElementById("cottageSelect").value;
@@ -271,7 +270,9 @@ async function setCottageStatus(){
   }
 
 }
+
 const API_BASE = "";
+
 async function loadUsers(){
   try{
     const res = await fetch(`${API_BASE}/api/users`);
@@ -293,13 +294,15 @@ async function loadUsers(){
     });
   }catch(e){console.error(e);}
 }
+
 document.getElementById("refreshBtn").onclick = loadUsers;
 loadUsers();
 </script>
 
 <script>
-/*********** SERVO CLOCK LOGIC ***********/
-const ESP_IP = "192.168.100.202";
+/*********** SERVO CLOCK + DIRECT ESP32 LOGIC ***********/
+const ESP_IP = "10.91.99.241";
+
 const canvas = document.getElementById("clockCanvas");
 const ctx = canvas.getContext("2d");
 const radius = canvas.width/2;
@@ -314,7 +317,6 @@ let servoRunning = false;
 function drawClock(){
   ctx.clearRect(-radius,-radius,canvas.width,canvas.height);
 
-  // clock face
   ctx.beginPath();
   ctx.arc(0,0,radius-5,0,2*Math.PI);
   ctx.fillStyle = "#3a3f50";
@@ -323,7 +325,6 @@ function drawClock(){
   ctx.lineWidth = 4;
   ctx.stroke();
 
-  // hour marks
   for(let i=0;i<12;i++){
     let angle=i*Math.PI/6;
     ctx.beginPath();
@@ -334,7 +335,6 @@ function drawClock(){
     ctx.stroke();
   }
 
-  // hour hand
   let hourAngle = ((currentHour%12)+currentMinute/60)*Math.PI/6;
   ctx.beginPath();
   ctx.moveTo(0,0);
@@ -343,7 +343,6 @@ function drawClock(){
   ctx.lineWidth=6;
   ctx.stroke();
 
-  // minute hand
   let minAngle = (currentMinute/60)*2*Math.PI;
   ctx.beginPath();
   ctx.moveTo(0,0);
@@ -352,7 +351,6 @@ function drawClock(){
   ctx.lineWidth=4;
   ctx.stroke();
 
-  // second hand
   let secAngle = (currentSecond/60)*2*Math.PI;
   ctx.beginPath();
   ctx.moveTo(0,0);
@@ -394,6 +392,7 @@ function updateClockFromMouse(e){
 const hourInput = document.getElementById("hourInput");
 const ampmInput = document.getElementById("ampmInput");
 const setTimeBtn = document.getElementById("setTimeBtn");
+
 setTimeBtn.addEventListener("click",()=>{
   let hour = parseInt(hourInput.value);
   const ampm = ampmInput.value;
@@ -405,20 +404,30 @@ setTimeBtn.addEventListener("click",()=>{
   if(hour===18) triggerServoFromClock(18);
 });
 
-// SEND TO ESP32
+// DIRECT ESP32 REQUEST
 function triggerServoFromClock(hour){
-  servoRunning=true;
+
+  if(servoRunning) return;
+
+  servoRunning = true;
   document.getElementById("servoStatus").textContent="Servo Status: Rotating";
-  let cmd=hour===6?"6AM":"6PM";
-  fetch(`http://${ESP_IP}/${cmd.toLowerCase()}`)
+
+  let cmd = hour===6 ? "6am" : "6pm";
+
+  fetch(`http://${ESP_IP}/${cmd}`)
     .then(res=>res.text())
     .then(data=>{
-      console.log("Servo Triggered:",data);
+      console.log("ESP32 Response:", data);
       setTimeout(()=>{
         servoRunning=false;
         document.getElementById("servoStatus").textContent="Servo Status: Idle";
       },15000);
-    }).catch(err=>console.error(err));
+    })
+    .catch(err=>{
+      console.error("ESP32 Error:", err);
+      servoRunning=false;
+      document.getElementById("servoStatus").textContent="Servo Status: Error";
+    });
 }
 </script>
 
