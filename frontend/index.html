@@ -196,40 +196,10 @@ th{background:#3d4256;text-align:left;}
         <p style="text-align:center; margin-top:5px;" id="servoStatus">Servo Status: Idle</p>
       </div>
 
-     <!-- Cottage Status Control -->
-<div class="card">
-  <h3>Cottages Status</h3>
-
-  <div style="margin-top:10px;">
-    <label>Select Cottage</label>
-    <select id="cottageSelect">
-      <option value="1">Cottage 1</option>
-      <option value="2">Cottage 2</option>
-      <option value="3">Cottage 3</option>
-      <option value="4">Cottage 4</option>
-      <option value="5">Cottage 5</option>
-      <option value="6">Cottage 6</option>
-      <option value="7">Cottage 7</option>
-      <option value="8">Cottage 8</option>
-      <option value="9">Cottage 9</option>
-      <option value="10">Cottage 10</option>
-    </select>
-  </div>
-
-  <div style="margin-top:10px;">
-    <label>Status</label>
-    <select id="statusSelect">
-      <option value="active">ACTIVE</option>
-      <option value="inactive">INACTIVE</option>
-    </select>
-  </div>
-
-  <button onclick="setCottageStatus()" style="margin-top:10px;">
-    Update Status
-  </button>
-
-  <p id="statusResult"></p>
-</div>
+      <div class="card">
+        <h3>Cottage Occupancy</h3>
+        <div class="chart">CHART PLACEHOLDER</div>
+      </div>
 
     </div>
 
@@ -237,42 +207,7 @@ th{background:#3d4256;text-align:left;}
 </div>
 
 <script>
-async function setCottageStatus(){
-
-  let cottage = document.getElementById("cottageSelect").value;
-  let status = document.getElementById("statusSelect").value;
-
-  try{
-
-    let res = await fetch("/set_cottage_status",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify({
-        cottage:cottage,
-        status:status
-      })
-    });
-
-    let data = await res.json();
-
-    document.getElementById("statusResult").innerText =
-      "Cottage " + cottage + " is now " + status.toUpperCase();
-
-  }catch(err){
-
-    document.getElementById("statusResult").innerText =
-      "Server error updating cottage status";
-
-    console.error(err);
-
-  }
-
-}
-
 const API_BASE = "";
-
 async function loadUsers(){
   try{
     const res = await fetch(`${API_BASE}/api/users`);
@@ -294,15 +229,13 @@ async function loadUsers(){
     });
   }catch(e){console.error(e);}
 }
-
 document.getElementById("refreshBtn").onclick = loadUsers;
 loadUsers();
 </script>
 
 <script>
-/*********** SERVO CLOCK + DIRECT ESP32 LOGIC ***********/
-const ESP_IP = "10.91.99.241";
-
+/*********** SERVO CLOCK LOGIC ***********/
+const ESP_IP = "192.168.100.202";
 const canvas = document.getElementById("clockCanvas");
 const ctx = canvas.getContext("2d");
 const radius = canvas.width/2;
@@ -317,6 +250,7 @@ let servoRunning = false;
 function drawClock(){
   ctx.clearRect(-radius,-radius,canvas.width,canvas.height);
 
+  // clock face
   ctx.beginPath();
   ctx.arc(0,0,radius-5,0,2*Math.PI);
   ctx.fillStyle = "#3a3f50";
@@ -325,6 +259,7 @@ function drawClock(){
   ctx.lineWidth = 4;
   ctx.stroke();
 
+  // hour marks
   for(let i=0;i<12;i++){
     let angle=i*Math.PI/6;
     ctx.beginPath();
@@ -335,6 +270,7 @@ function drawClock(){
     ctx.stroke();
   }
 
+  // hour hand
   let hourAngle = ((currentHour%12)+currentMinute/60)*Math.PI/6;
   ctx.beginPath();
   ctx.moveTo(0,0);
@@ -343,6 +279,7 @@ function drawClock(){
   ctx.lineWidth=6;
   ctx.stroke();
 
+  // minute hand
   let minAngle = (currentMinute/60)*2*Math.PI;
   ctx.beginPath();
   ctx.moveTo(0,0);
@@ -351,6 +288,7 @@ function drawClock(){
   ctx.lineWidth=4;
   ctx.stroke();
 
+  // second hand
   let secAngle = (currentSecond/60)*2*Math.PI;
   ctx.beginPath();
   ctx.moveTo(0,0);
@@ -392,7 +330,6 @@ function updateClockFromMouse(e){
 const hourInput = document.getElementById("hourInput");
 const ampmInput = document.getElementById("ampmInput");
 const setTimeBtn = document.getElementById("setTimeBtn");
-
 setTimeBtn.addEventListener("click",()=>{
   let hour = parseInt(hourInput.value);
   const ampm = ampmInput.value;
@@ -404,30 +341,20 @@ setTimeBtn.addEventListener("click",()=>{
   if(hour===18) triggerServoFromClock(18);
 });
 
-// DIRECT ESP32 REQUEST
+// SEND TO ESP32
 function triggerServoFromClock(hour){
-
-  if(servoRunning) return;
-
-  servoRunning = true;
+  servoRunning=true;
   document.getElementById("servoStatus").textContent="Servo Status: Rotating";
-
-  let cmd = hour===6 ? "6am" : "6pm";
-
-  fetch(`http://${ESP_IP}/${cmd}`)
+  let cmd=hour===6?"6AM":"6PM";
+  fetch(`http://${ESP_IP}/${cmd.toLowerCase()}`)
     .then(res=>res.text())
     .then(data=>{
-      console.log("ESP32 Response:", data);
+      console.log("Servo Triggered:",data);
       setTimeout(()=>{
         servoRunning=false;
         document.getElementById("servoStatus").textContent="Servo Status: Idle";
       },15000);
-    })
-    .catch(err=>{
-      console.error("ESP32 Error:", err);
-      servoRunning=false;
-      document.getElementById("servoStatus").textContent="Servo Status: Error";
-    });
+    }).catch(err=>console.error(err));
 }
 </script>
 
