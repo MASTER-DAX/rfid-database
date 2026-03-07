@@ -6,109 +6,145 @@
 <title>Smart Cottage System — Accounts</title>
 
 <link href="https://fonts.googleapis.com/css?family=Nunito:400,700,800" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
 <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
 
 <style>
-:root {
-  --primary:#1f6feb;
-  --bg:#e8f2ff;
+
+:root{
+  --bg:#3a3f50;
+  --card:#2f3345;
+  --primary:#f8f1f1;
+  --text:#f5e9e9;
+  --muted:#aaaaaa;
+  --border:#555555;
 }
 
-* { box-sizing:border-box; }
+*{box-sizing:border-box;}
 
-body {
+body{
   margin:0;
   font-family:Nunito,system-ui;
   background:var(--bg);
+  color:var(--text);
+  display:flex;
 }
 
-.page {
+/* SIDEBAR */
+
+#sidebar{
+  width:64px;
+  transition:.3s;
+  background:var(--card);
+  height:100vh;
+  position:fixed;
+  padding:20px 10px;
+}
+
+#sidebar span{
+  opacity:0;
+  transition:.2s;
+  white-space:nowrap;
+}
+
+#sidebar:hover{
+  width:170px;
+}
+
+#sidebar:hover span{
+  opacity:1;
+}
+
+#sidebar ul{
+  list-style:none;
+  padding:0;
+}
+
+#sidebar li{
+  margin:20px 0;
+}
+
+#sidebar a{
+  color:#ccc;
+  text-decoration:none;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+#sidebar a:hover{
+  color:white;
+}
+
+/* MAIN */
+
+.main{
+  margin-left:64px;
+  padding:24px;
+  width:100%;
+}
+
+#sidebar:hover ~ .main{
+  margin-left:170px;
+}
+
+/* PAGE GRID */
+
+.page{
   display:flex;
   gap:20px;
-  padding:20px;
 }
 
-/* LEFT */
-.db-panel {
+/* PANELS */
+
+.db-panel{
   flex:1.3;
-  background:#fff;
+  background:var(--card);
   padding:20px;
   border-radius:16px;
-  box-shadow:0 10px 25px rgba(0,0,0,.08);
 }
 
-.cottages {
-  display:flex;
-  gap:10px;
-  margin-bottom:14px;
-}
-
-.cottages button {
+.form-wrap{
   flex:1;
-  padding:10px;
-  border-radius:10px;
-  border:0;
-  background:#e5edff;
-  color:var(--primary);
-  font-weight:600;
-  cursor:pointer;
+  background:var(--card);
+  padding:20px;
+  border-radius:16px;
 }
 
-table {
+/* TABLE */
+
+table{
   width:100%;
   border-collapse:collapse;
   font-size:13px;
 }
 
-th, td {
+th,td{
   padding:10px;
-  border-bottom:1px solid #e5e7eb;
+  border-bottom:1px solid var(--border);
 }
 
-/* RIGHT */
-.form-wrap {
-  flex:1;
-  background:#fff;
-  padding:20px;
-  border-radius:16px;
-  box-shadow:0 10px 25px rgba(0,0,0,.08);
+th{
+  background:#3d4256;
 }
 
-label {
-  display:block;
-  margin-top:10px;
-  font-size:13px;
+/* BUTTONS */
+
+button{
+  cursor:pointer;
 }
 
-input, select {
-  width:100%;
-  padding:10px;
-  margin-top:5px;
-  border-radius:8px;
-  border:1px solid #d1d5db;
-}
-
-input[readonly] {
-  background:#f3f4f6;
-}
-
-.actions {
-  display:flex;
-  gap:10px;
-  margin-top:14px;
-}
-
-button.primary {
+button.primary{
   flex:1;
   background:var(--primary);
-  color:white;
+  color:var(--bg);
   border:0;
   padding:12px;
   border-radius:10px;
   font-weight:600;
 }
 
-button.secondary {
+button.secondary{
   flex:1;
   background:transparent;
   border:1px solid var(--primary);
@@ -117,93 +153,184 @@ button.secondary {
   border-radius:10px;
 }
 
-#log {
+/* FORM */
+
+label{
+  display:block;
+  margin-top:10px;
+  font-size:13px;
+}
+
+input,select{
+  width:100%;
+  padding:10px;
+  margin-top:5px;
+  border-radius:8px;
+  border:none;
+  font-weight:bold;
+  color:#333;
+}
+
+input[readonly]{
+  background:#ddd;
+}
+
+.actions{
+  display:flex;
+  gap:10px;
+  margin-top:14px;
+}
+
+.cottages{
+  display:flex;
+  gap:10px;
+  margin-bottom:14px;
+}
+
+.cottages button{
+  flex:1;
+  padding:10px;
+  border-radius:10px;
+  border:0;
+  background:#3d4256;
+  color:white;
+}
+
+#log{
   margin-top:12px;
   font-size:13px;
   min-height:20px;
   font-weight:600;
 }
+
 </style>
 </head>
 
 <body>
 
+<!-- SIDEBAR -->
+<div id="sidebar" class="fixed h-screen bg-card shadow px-4">
+
+  <ul class="mt-10 space-y-6 text-gray-400">
+
+    <li>
+      <a href="index.html" class="flex items-center hover:text-blue-300">
+        <i class="fas fa-home w-6 text-center"></i>
+        <span class="ml-3">Dashboard</span>
+      </a>
+    </li>
+
+    <li>
+      <a href="accounts.html" class="flex items-center text-blue-400 font-semibold">
+        <i class="fas fa-users w-6 text-center"></i>
+        <span class="ml-3">Accounts</span>
+      </a>
+    </li>
+
+    <li class="pt-6 border-t border-gray-700">
+      <a class="flex items-center hover:text-red-400">
+        <i class="fas fa-sign-out-alt w-6 text-center"></i>
+        <span class="ml-3">Logout</span>
+      </a>
+    </li>
+
+  </ul>
+
+</div>
+
+<!-- MAIN -->
+
+<div class="main">
+
 <div class="page">
 
 <!-- LEFT TABLE -->
+
 <div class="db-panel">
-  <h3>Cottages</h3>
 
-  <div class="cottages">
-    <button onclick="loadCottage('COTTAGE-1')">Cottage 1</button>
-    <button onclick="loadCottage('COTTAGE-2')">Cottage 2</button>
-    <button onclick="loadCottage('COTTAGE-3')">Cottage 3</button>
-    <button onclick="loadCottage('COTTAGE-4')">Cottage 4</button>
-  </div>
+<h3>Cottages</h3>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Employee ID</th>
-        <th>Valid Until</th>
-        <th>Created</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="userRows"></tbody>
-  </table>
+<div class="cottages">
+<button onclick="loadCottage('COTTAGE-1')">Cottage 1</button>
+<button onclick="loadCottage('COTTAGE-2')">Cottage 2</button>
+<button onclick="loadCottage('COTTAGE-3')">Cottage 3</button>
+<button onclick="loadCottage('COTTAGE-4')">Cottage 4</button>
 </div>
 
+<table>
+
+<thead>
+<tr>
+<th>Name</th>
+<th>Employee ID</th>
+<th>Valid Until</th>
+<th>Created</th>
+<th>Actions</th>
+</tr>
+</thead>
+
+<tbody id="userRows"></tbody>
+
+</table>
+
+</div>
+
+
 <!-- RIGHT FORM -->
+
 <div class="form-wrap">
-  <h3>Register Card</h3>
 
-  <label>Card UID
-    <input id="uid" readonly placeholder="Tap card">
-  </label>
+<h3>Register Card</h3>
 
-  <label>Name
-    <input id="name">
-  </label>
+<label>Card UID
+<input id="uid" readonly placeholder="Tap card">
+</label>
 
-  <label>Employee ID
-    <input id="employee_id">
-  </label>
+<label>Name
+<input id="name">
+</label>
 
-  <label>Access Level
-    <select id="access_level">
-      <option value="guest">Guest</option>
-      <option value="basic">Basic</option>
-      <option value="premium">Premium</option>
-      <option value="admin">Admin</option>
-    </select>
-  </label>
+<label>Employee ID
+<input id="employee_id">
+</label>
 
-  <label>Valid Until
-    <input type="date" id="valid_until">
-  </label>
+<label>Access Level
+<select id="access_level">
+<option value="guest">Guest</option>
+<option value="basic">Basic</option>
+<option value="premium">Premium</option>
+<option value="admin">Admin</option>
+</select>
+</label>
 
-  <label>Cottage
-    <select id="cottage">
-      <option>COTTAGE-1</option>
-      <option>COTTAGE-2</option>
-      <option>COTTAGE-3</option>
-      <option>COTTAGE-4</option>
-    </select>
-  </label>
+<label>Valid Until
+<input type="date" id="valid_until">
+</label>
 
-  <div class="actions">
-    <button class="primary" onclick="save()">Save</button>
-    <button class="secondary" onclick="clearForm()">Clear</button>
-  </div>
+<label>Cottage
+<select id="cottage">
+<option>COTTAGE-1</option>
+<option>COTTAGE-2</option>
+<option>COTTAGE-3</option>
+<option>COTTAGE-4</option>
+</select>
+</label>
 
-  <div id="log">Waiting for card…</div>
+<div class="actions">
+<button class="primary" onclick="save()">Save</button>
+<button class="secondary" onclick="clearForm()">Clear</button>
+</div>
+
+<div id="log">Waiting for card…</div>
+
+</div>
+
 </div>
 
 </div>
 
 <script>
+
 const socket = io();
 
 let activeCottage = null;
@@ -216,121 +343,123 @@ const accessInput = document.getElementById("access_level");
 const validInput = document.getElementById("valid_until");
 const cottageInput = document.getElementById("cottage");
 
-/* -------------------------
-   SOCKET EVENTS
---------------------------*/
-socket.on("card_tapped", data => {
-  uid.value = data.uid;
+/* SOCKET */
 
-  if (data.access === "granted") {
-    cardStillValid = true;
-    logMsg("Card already registered — ACCESS GRANTED", "#b45309");
-  } else {
-    cardStillValid = false;
-    logMsg("New/expired card — ready to register", "#15803d");
-  }
+socket.on("card_tapped", data => {
+
+uid.value = data.uid;
+
+if(data.access==="granted"){
+cardStillValid=true;
+logMsg("Card already registered — ACCESS GRANTED","#b45309");
+}else{
+cardStillValid=false;
+logMsg("New/expired card — ready to register","#15803d");
+}
+
 });
 
-/* -------------------------
-   HELPERS
---------------------------*/
-function logMsg(msg, color="#000") {
-  const log = document.getElementById("log");
-  log.textContent = msg;
-  log.style.color = color;
+/* HELPERS */
+
+function logMsg(msg,color="#000"){
+const log=document.getElementById("log");
+log.textContent=msg;
+log.style.color=color;
 }
 
-function clearForm() {
-  nameInput.value = "";
-  employeeInput.value = "";
-  validInput.value = "";
-  cardStillValid = false;
+function clearForm(){
+nameInput.value="";
+employeeInput.value="";
+validInput.value="";
+cardStillValid=false;
 }
 
-/* -------------------------
-   SAVE USER
---------------------------*/
-async function save() {
+/* SAVE */
 
-  if (!uid.value || !nameInput.value) {
-    logMsg("❌ Tap card + enter name first", "#b91c1c");
-    return;
-  }
+async function save(){
 
-  if (cardStillValid) {
-    logMsg("❌ Card still valid. Cannot re-register.", "#b91c1c");
-    return;
-  }
-
-  const payload = {
-    uid: uid.value,
-    name: nameInput.value,
-    employee_id: employeeInput.value,
-    access_level: accessInput.value,
-    valid_until: validInput.value,
-    cottage: cottageInput.value
-  };
-
-  try {
-    const res = await fetch("/api/register_card", {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify(payload)
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      logMsg("❌ " + (data.error || "Save failed"), "#b91c1c");
-      return;
-    }
-
-    logMsg("✅ Card registered", "#15803d");
-    clearForm();
-
-    if (activeCottage)
-      loadCottage(activeCottage);
-
-  } catch(err) {
-    logMsg("❌ Server offline", "#b91c1c");
-  }
+if(!uid.value || !nameInput.value){
+logMsg("❌ Tap card + enter name first","#b91c1c");
+return;
 }
 
-/* -------------------------
-   LOAD USERS (FIXED ROUTE)
---------------------------*/
-async function loadCottage(cottage) {
-
-  activeCottage = cottage;
-
-  const res = await fetch(`/api/users?cottage=${cottage}`);
-  const users = await res.json();
-
-  const tbody = document.getElementById("userRows");
-  tbody.innerHTML = "";
-
-  users.forEach(u => {
-    tbody.innerHTML += `
-      <tr>
-        <td>${u.name}</td>
-        <td>${u.employee_id || "-"}</td>
-        <td>${u.valid_until || "-"}</td>
-        <td>${u.created_at || "-"}</td>
-        <td>
-          <button onclick="deleteUser('${u.uid}')">🗑</button>
-        </td>
-      </tr>
-    `;
-  });
+if(cardStillValid){
+logMsg("❌ Card still valid. Cannot re-register.","#b91c1c");
+return;
 }
 
-/* -------------------------
-   DELETE
---------------------------*/
-async function deleteUser(uid) {
-  await fetch(`/api/users/${uid}`, { method:"DELETE" });
-  if (activeCottage) loadCottage(activeCottage);
+const payload={
+uid:uid.value,
+name:nameInput.value,
+employee_id:employeeInput.value,
+access_level:accessInput.value,
+valid_until:validInput.value,
+cottage:cottageInput.value
+};
+
+try{
+
+const res=await fetch("/api/register_card",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify(payload)
+});
+
+const data=await res.json();
+
+if(!res.ok){
+logMsg("❌ "+(data.error || "Save failed"),"#b91c1c");
+return;
 }
+
+logMsg("✅ Card registered","#15803d");
+clearForm();
+
+if(activeCottage) loadCottage(activeCottage);
+
+}catch(err){
+logMsg("❌ Server offline","#b91c1c");
+}
+
+}
+
+/* LOAD USERS */
+
+async function loadCottage(cottage){
+
+activeCottage=cottage;
+
+const res=await fetch(`/api/users?cottage=${cottage}`);
+const users=await res.json();
+
+const tbody=document.getElementById("userRows");
+tbody.innerHTML="";
+
+users.forEach(u=>{
+
+tbody.innerHTML+=`
+<tr>
+<td>${u.name}</td>
+<td>${u.employee_id || "-"}</td>
+<td>${u.valid_until || "-"}</td>
+<td>${u.created_at || "-"}</td>
+<td>
+<button onclick="deleteUser('${u.uid}')">🗑</button>
+</td>
+</tr>
+`;
+
+});
+
+}
+
+/* DELETE */
+
+async function deleteUser(uid){
+await fetch(`/api/users/${uid}`,{method:"DELETE"});
+if(activeCottage) loadCottage(activeCottage);
+}
+
 </script>
 
 </body>
