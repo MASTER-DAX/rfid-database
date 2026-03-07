@@ -74,7 +74,7 @@ th{background:#3d4256;text-align:left;}
 #clockCanvas{background:var(--card);border-radius:50%;}
 
 /* INPUTS */
-.servo-container input, .servo-container select{padding:6px 8px;border-radius:8px;border:none;font-weight:bold;text-align:center;  color:rgb(58, 56, 56); /* added */}
+.servo-container input, .servo-container select{padding:6px 8px;border-radius:8px;border:none;font-weight:bold;text-align:center;  color:rgb(58, 56, 56);}
 </style>
 </head>
 
@@ -237,15 +237,12 @@ th{background:#3d4256;text-align:left;}
 </div>
 
 <script>
-
 async function setCottageStatus(){
-
   let cottage = document.getElementById("cottageSelect").value;
   let status = document.getElementById("statusSelect").value;
 
   try{
-
-    let res = await fetch("/set_cottage_status",{
+    let res = await fetch("/api/set_cottage_status",{
       method:"POST",
       headers:{
         "Content-Type":"application/json"
@@ -257,20 +254,18 @@ async function setCottageStatus(){
     });
 
     let data = await res.json();
+    console.log("Server Response:", data);
 
     document.getElementById("statusResult").innerText =
       "Cottage " + cottage + " is now " + status.toUpperCase();
 
   }catch(err){
-
     document.getElementById("statusResult").innerText =
       "Server error updating cottage status";
-
     console.error(err);
-
   }
-
 }
+
 const API_BASE = "";
 async function loadUsers(){
   try{
@@ -314,7 +309,6 @@ let servoRunning = false;
 function drawClock(){
   ctx.clearRect(-radius,-radius,canvas.width,canvas.height);
 
-  // clock face
   ctx.beginPath();
   ctx.arc(0,0,radius-5,0,2*Math.PI);
   ctx.fillStyle = "#3a3f50";
@@ -323,7 +317,6 @@ function drawClock(){
   ctx.lineWidth = 4;
   ctx.stroke();
 
-  // hour marks
   for(let i=0;i<12;i++){
     let angle=i*Math.PI/6;
     ctx.beginPath();
@@ -334,7 +327,6 @@ function drawClock(){
     ctx.stroke();
   }
 
-  // hour hand
   let hourAngle = ((currentHour%12)+currentMinute/60)*Math.PI/6;
   ctx.beginPath();
   ctx.moveTo(0,0);
@@ -343,16 +335,14 @@ function drawClock(){
   ctx.lineWidth=6;
   ctx.stroke();
 
-  // minute hand
   let minAngle = (currentMinute/60)*2*Math.PI;
   ctx.beginPath();
   ctx.moveTo(0,0);
-  ctx.lineTo(Math.cos(minAngle- Math.PI/2)*(radius-40), Math.sin(minAngle- Math.PI/2)*(radius-40));
+  ctx.lineTo(Math.cos(minAngle- Math.PI/2)*(radius-40),Math.sin(minAngle- Math.PI/2)*(radius-40));
   ctx.strokeStyle="#aaaaaa";
   ctx.lineWidth=4;
   ctx.stroke();
 
-  // second hand
   let secAngle = (currentSecond/60)*2*Math.PI;
   ctx.beginPath();
   ctx.moveTo(0,0);
@@ -371,7 +361,6 @@ function updateTime(){
 }
 setInterval(updateTime,1000);
 
-// DRAG LOGIC
 canvas.addEventListener("mousedown", e=>{dragging=true; updateClockFromMouse(e);});
 canvas.addEventListener("mousemove", e=>{if(dragging) updateClockFromMouse(e);});
 canvas.addEventListener("mouseup", e=>{dragging=false;});
@@ -390,7 +379,6 @@ function updateClockFromMouse(e){
   if(currentHour===18) triggerServoFromClock(18);
 }
 
-// INPUT SET LOGIC
 const hourInput = document.getElementById("hourInput");
 const ampmInput = document.getElementById("ampmInput");
 const setTimeBtn = document.getElementById("setTimeBtn");
@@ -405,7 +393,6 @@ setTimeBtn.addEventListener("click",()=>{
   if(hour===18) triggerServoFromClock(18);
 });
 
-// SEND TO ESP32
 function triggerServoFromClock(hour){
   servoRunning=true;
   document.getElementById("servoStatus").textContent="Servo Status: Rotating";
