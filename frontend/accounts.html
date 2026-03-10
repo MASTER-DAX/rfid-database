@@ -1,12 +1,13 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Smart Cottage System — Accounts</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Cottage System – RFID Management</title>
 
-<link href="https://fonts.googleapis.com/css?family=Nunito:400,700,800" rel="stylesheet">
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
+<link rel="stylesheet" href="https://unpkg.com/tailwindcss@2.2.19/dist/tailwind.min.css"/>
 <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
 
 <style>
@@ -20,14 +21,11 @@
   --border:#555555;
 }
 
-*{box-sizing:border-box;}
-
 body{
   margin:0;
   font-family:Nunito,system-ui;
   background:var(--bg);
   color:var(--text);
-  display:flex;
 }
 
 /* SIDEBAR */
@@ -35,10 +33,6 @@ body{
 #sidebar{
   width:64px;
   transition:.3s;
-  background:var(--card);
-  height:100vh;
-  position:fixed;
-  padding:20px 10px;
 }
 
 #sidebar span{
@@ -55,29 +49,6 @@ body{
   opacity:1;
 }
 
-#sidebar ul{
-  list-style:none;
-  padding:0;
-}
-
-#sidebar li{
-  margin:20px 0;
-}
-
-#sidebar a{
-  color:#ccc;
-  text-decoration:none;
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-
-#sidebar a:hover{
-  color:white;
-}
-
-/* MAIN */
-
 .main{
   margin-left:64px;
   padding:24px;
@@ -88,27 +59,22 @@ body{
   margin-left:170px;
 }
 
-/* PAGE GRID */
+/* DASHBOARD GRID WIDTH FIX */
 
-.page{
-  display:flex;
+.dashboard{
+  display:grid;
+  grid-template-columns: 2fr 1fr; /* logs wider */
   gap:20px;
+  width:100%;
 }
 
-/* PANELS */
+/* CARD */
 
-.db-panel{
-  flex:1.3;
+.card{
   background:var(--card);
-  padding:20px;
   border-radius:16px;
-}
-
-.form-wrap{
-  flex:1;
-  background:var(--card);
   padding:20px;
-  border-radius:16px;
+  width:100%;
 }
 
 /* TABLE */
@@ -116,41 +82,17 @@ body{
 table{
   width:100%;
   border-collapse:collapse;
-  font-size:13px;
 }
 
 th,td{
-  padding:10px;
+  padding:12px;
   border-bottom:1px solid var(--border);
+  font-size:14px;
 }
 
 th{
   background:#3d4256;
-}
-
-/* BUTTONS */
-
-button{
-  cursor:pointer;
-}
-
-button.primary{
-  flex:1;
-  background:var(--primary);
-  color:var(--bg);
-  border:0;
-  padding:12px;
-  border-radius:10px;
-  font-weight:600;
-}
-
-button.secondary{
-  flex:1;
-  background:transparent;
-  border:1px solid var(--primary);
-  color:var(--primary);
-  padding:12px;
-  border-radius:10px;
+  text-align:left;
 }
 
 /* FORM */
@@ -175,65 +117,71 @@ input[readonly]{
   background:#ddd;
 }
 
+/* BUTTONS */
+
 .actions{
   display:flex;
   gap:10px;
   margin-top:14px;
 }
 
-.cottages{
-  display:flex;
-  gap:10px;
-  margin-bottom:14px;
+button.primary{
+  flex:1;
+  background:var(--primary);
+  color:var(--bg);
+  border:0;
+  padding:12px;
+  border-radius:10px;
+  font-weight:600;
 }
 
-.cottages button{
+button.secondary{
   flex:1;
-  padding:10px;
+  background:transparent;
+  border:1px solid var(--primary);
+  color:var(--primary);
+  padding:12px;
   border-radius:10px;
-  border:0;
-  background:#3d4256;
-  color:white;
 }
 
 #log{
   margin-top:12px;
   font-size:13px;
-  min-height:20px;
   font-weight:600;
 }
 
 </style>
 </head>
 
-<body>
+<body class="flex">
 
 <!-- SIDEBAR -->
+
 <div id="sidebar" class="fixed h-screen bg-card shadow px-4">
 
-  <ul class="mt-10 space-y-6 text-gray-400">
+<ul class="mt-10 space-y-6 text-gray-400">
 
-    <li>
-      <a href="index.html" class="flex items-center hover:text-blue-300">
+   <li>
+      <a href="index.html" class="flex items-center text-blue-400 font-semibold">
         <i class="fas fa-home w-6 text-center"></i>
         <span class="ml-3">Dashboard</span>
       </a>
     </li>
 
     <li>
-      <a href="accounts.html" class="flex items-center text-blue-400 font-semibold">
+      <a href="accounts.html" class="flex items-center hover:text-blue-300">
         <i class="fas fa-users w-6 text-center"></i>
         <span class="ml-3">Accounts</span>
       </a>
     </li>
 
-    <li>
+      <li>
       <a href="logs.html" class="flex items-center hover:text-blue-300">
         <i class="fas fa-users w-6 text-center"></i>
         <span class="ml-3">Logs</span>
       </a>
     </li>
-
+    
     <li class="pt-6 border-t border-gray-700">
       <a class="flex items-center hover:text-red-400">
         <i class="fas fa-sign-out-alt w-6 text-center"></i>
@@ -241,53 +189,46 @@ input[readonly]{
       </a>
     </li>
 
-  </ul>
+</ul>
 
 </div>
+
 
 <!-- MAIN -->
 
 <div class="main">
 
-<div class="page">
+<h1 class="text-xl font-extrabold mb-5">RFID Management</h1>
 
-<!-- LEFT TABLE -->
+<div class="dashboard">
 
-<div class="db-panel">
+<!-- LEFT : RFID LOGS -->
 
-<h3>Cottages</h3>
+<div class="card">
 
-<div class="cottages">
-<button onclick="loadCottage('COTTAGE-1')">Cottage 1</button>
-<button onclick="loadCottage('COTTAGE-2')">Cottage 2</button>
-<button onclick="loadCottage('COTTAGE-3')">Cottage 3</button>
-<button onclick="loadCottage('COTTAGE-4')">Cottage 4</button>
-</div>
+<h3 class="text-lg font-bold mb-3">Latest RFID Taps</h3>
 
 <table>
 
 <thead>
 <tr>
-<th>Name</th>
-<th>Employee ID</th>
-<th>Valid Until</th>
-<th>Created</th>
-<th>Actions</th>
+<th>UID</th>
+<th>Timestamp</th>
 </tr>
 </thead>
 
-<tbody id="userRows"></tbody>
+<tbody id="logsTable"></tbody>
 
 </table>
 
 </div>
 
 
-<!-- RIGHT FORM -->
+<!-- RIGHT : REGISTER -->
 
-<div class="form-wrap">
+<div class="card">
 
-<h3>Register Card</h3>
+<h3 class="text-lg font-bold mb-3">Register Card</h3>
 
 <label>Card UID
 <input id="uid" readonly placeholder="Tap card">
@@ -336,43 +277,43 @@ input[readonly]{
 
 </div>
 
+
 <script>
 
+const API_BASE = "";
 const socket = io();
 
-let activeCottage = null;
-let cardStillValid = false;
+let cardStillValid=false;
 
-const uid = document.getElementById("uid");
-const nameInput = document.getElementById("name");
-const employeeInput = document.getElementById("employee_id");
-const accessInput = document.getElementById("access_level");
-const validInput = document.getElementById("valid_until");
-const cottageInput = document.getElementById("cottage");
+const uid=document.getElementById("uid");
+const nameInput=document.getElementById("name");
+const employeeInput=document.getElementById("employee_id");
+const accessInput=document.getElementById("access_level");
+const validInput=document.getElementById("valid_until");
+const cottageInput=document.getElementById("cottage");
 
-/* SOCKET */
 
-socket.on("card_tapped", data => {
+socket.on("card_tapped",data=>{
 
-uid.value = data.uid;
+uid.value=data.uid;
 
 if(data.access==="granted"){
 cardStillValid=true;
-logMsg("Card already registered — ACCESS GRANTED","#b45309");
+logMsg("Card already registered — ACCESS GRANTED","#f59e0b");
 }else{
 cardStillValid=false;
-logMsg("New/expired card — ready to register","#15803d");
+logMsg("New/expired card — ready to register","#22c55e");
 }
 
 });
 
-/* HELPERS */
 
-function logMsg(msg,color="#000"){
+function logMsg(msg,color="#fff"){
 const log=document.getElementById("log");
 log.textContent=msg;
 log.style.color=color;
 }
+
 
 function clearForm(){
 nameInput.value="";
@@ -381,17 +322,16 @@ validInput.value="";
 cardStillValid=false;
 }
 
-/* SAVE */
 
 async function save(){
 
 if(!uid.value || !nameInput.value){
-logMsg("❌ Tap card + enter name first","#b91c1c");
+logMsg("Tap card + enter name first","#ef4444");
 return;
 }
 
 if(cardStillValid){
-logMsg("❌ Card still valid. Cannot re-register.","#b91c1c");
+logMsg("Card still valid. Cannot re-register.","#ef4444");
 return;
 }
 
@@ -415,57 +355,48 @@ body:JSON.stringify(payload)
 const data=await res.json();
 
 if(!res.ok){
-logMsg("❌ "+(data.error || "Save failed"),"#b91c1c");
+logMsg(data.error || "Save failed","#ef4444");
 return;
 }
 
-logMsg("✅ Card registered","#15803d");
+logMsg("Card registered","#22c55e");
 clearForm();
 
-if(activeCottage) loadCottage(activeCottage);
-
 }catch(err){
-logMsg("❌ Server offline","#b91c1c");
+logMsg("Server offline","#ef4444");
 }
 
 }
 
-/* LOAD USERS */
 
-async function loadCottage(cottage){
+/* LOAD LOGS */
 
-activeCottage=cottage;
+async function loadLogs(){
 
-const res=await fetch(`/api/users?cottage=${cottage}`);
-const users=await res.json();
+try{
 
-const tbody=document.getElementById("userRows");
+const res=await fetch(`${API_BASE}/api/taps`);
+const logs=await res.json();
+
+const tbody=document.getElementById("logsTable");
 tbody.innerHTML="";
 
-users.forEach(u=>{
+logs.forEach(log=>{
 
-tbody.innerHTML+=`
-<tr>
-<td>${u.name}</td>
-<td>${u.employee_id || "-"}</td>
-<td>${u.valid_until || "-"}</td>
-<td>${u.created_at || "-"}</td>
-<td>
-<button onclick="deleteUser('${u.uid}')">🗑</button>
-</td>
-</tr>
-`;
+const tr=document.createElement("tr");
+tr.innerHTML=`<td>${log.uid}</td><td>${log.ts}</td>`;
+tbody.appendChild(tr);
 
 });
 
+}catch(e){
+console.error(e);
 }
 
-/* DELETE */
-
-async function deleteUser(uid){
-await fetch(`/api/users/${uid}`,{method:"DELETE"});
-if(activeCottage) loadCottage(activeCottage);
 }
+
+loadLogs();
+setInterval(loadLogs,5000);
 
 </script>
 
