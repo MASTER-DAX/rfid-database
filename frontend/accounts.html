@@ -209,17 +209,16 @@ button.secondary{
 <h3 class="text-lg font-bold mb-3">Latest RFID Taps</h3>
 
 <table>
-
 <thead>
 <tr>
 <th>UID</th>
 <th>Timestamp</th>
 </tr>
 </thead>
-
 <tbody id="logsTable"></tbody>
-
 </table>
+
+<button id="seeMoreBtn" class="mt-3 px-3 py-1 bg-blue-500 text-white rounded text-sm">See more</button>
 
 </div>
 
@@ -371,32 +370,45 @@ logMsg("Server offline","#ef4444");
 
 /* LOAD LOGS */
 
-async function loadLogs(){
+let allLogs = [];
+let logsShown = 5; // initial na ipapakita
 
-try{
+async function loadLogs() {
+  try {
+    const res = await fetch(`${API_BASE}/api/taps`);
+    const logs = await res.json();
+    allLogs = logs; // save lahat
 
-const res=await fetch(`${API_BASE}/api/taps`);
-const logs=await res.json();
+    renderLogs();
+  } catch (e) {
+    console.error(e);
+  }
+}
 
-const tbody=document.getElementById("logsTable");
-tbody.innerHTML="";
+function renderLogs() {
+  const tbody = document.getElementById("logsTable");
+  tbody.innerHTML = "";
 
-logs.forEach(log=>{
+  // ipakita lang yung top n logs
+  allLogs.slice(0, logsShown).forEach(log => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${log.uid}</td><td>${log.ts}</td>`;
+    tbody.appendChild(tr);
+  });
 
-const tr=document.createElement("tr");
-tr.innerHTML=`<td>${log.uid}</td><td>${log.ts}</td>`;
-tbody.appendChild(tr);
+  // hide button kung lahat na ang nakikita
+  document.getElementById("seeMoreBtn").style.display = (logsShown >= allLogs.length) ? "none" : "block";
+}
 
+// button para magpakita ng mas marami
+document.getElementById("seeMoreBtn").addEventListener("click", () => {
+  logsShown += 5; // dagdag 5 bawat click
+  renderLogs();
 });
 
-}catch(e){
-console.error(e);
-}
-
-}
-
+// initial load
 loadLogs();
-setInterval(loadLogs,5000);
+setInterval(loadLogs, 5000);
 
 </script>
 
