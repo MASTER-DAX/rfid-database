@@ -301,7 +301,7 @@ async function loadUsers(){
     document.getElementById("premiumCount").textContent = premium;
 
     // Update revenue
-    const revenue = (basic*6999) + (premium*9999); // Guest = 0
+    const revenue = (guest*3999) + (basic*6999) + (premium*9999); // Guest = 0
     document.getElementById("revenueTotal").textContent = revenue.toLocaleString() + " PHP";
 
     // Update User Counts total in stats
