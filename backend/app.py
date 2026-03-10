@@ -43,6 +43,7 @@ def get_taps():
 # HEALTH CHECK
 # -------------------------------------------------
 
+
 @app.route("/health")
 def health():
     return "OK", 200
@@ -54,6 +55,11 @@ def health():
 @app.route("/")
 def index():
     return send_from_directory(app.static_folder, "index.html")
+
+# serve logs page
+@app.route("/logs")
+def logs_page():
+    return send_from_directory(app.static_folder, "logs.html")
 
 # -------------------------------------------------
 # ESP32 → Server: Tap Card
