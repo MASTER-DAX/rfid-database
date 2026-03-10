@@ -132,7 +132,7 @@ th{background:#3d4256;text-align:left;}
     <div class="stat">
       <div>
         <h3>Total Cottages</h3>
-        <p>—</p>
+        <p>10</p>
       </div>
       <i class="fas fa-home"></i>
     </div>
@@ -148,17 +148,17 @@ th{background:#3d4256;text-align:left;}
     <div class="stat">
       <div>
         <h3>Revenue</h3>
-        <p>—</p>
+        <p id="revenueTotal">0 PHP</p>
       </div>
       <i class="fas fa-wallet"></i>
     </div>
 
     <div class="stat">
       <div>
-        <h3>Occupancy</h3>
-        <p>—</p>
+        <h3>User Counts</h3>
+        <p id="userCountTotal">0</p>
       </div>
-      <i class="fas fa-chart-pie"></i>
+      <i class="fas fa-users"></i>
     </div>
   </div>
 
@@ -255,9 +255,6 @@ th{background:#3d4256;text-align:left;}
         </table>
       </div>
 
-      <!-- NEW TABLE: Latest RFID Taps -->
-     
-
     </div>
 
   </div>
@@ -271,6 +268,11 @@ async function loadUsers(){
   try{
     const res = await fetch(`${API_BASE}/api/users`);
     const users = await res.json();
+
+    // Total cottages
+    document.querySelector(".stats div:first-child p").textContent = "10";
+
+    // Active Guests
     document.getElementById("activeGuests").textContent = users.length;
 
     const tbody = document.getElementById("usersTable");
@@ -290,9 +292,20 @@ async function loadUsers(){
     // Update counts table
     const countsRes = await fetch(`${API_BASE}/api/user_counts`);
     const counts = await countsRes.json();
-    document.getElementById("guestCount").textContent = counts.guest || 0;
-    document.getElementById("basicCount").textContent = counts.basic || 0;
-    document.getElementById("premiumCount").textContent = counts.premium || 0;
+    const guest = counts.guest || 0;
+    const basic = counts.basic || 0;
+    const premium = counts.premium || 0;
+
+    document.getElementById("guestCount").textContent = guest;
+    document.getElementById("basicCount").textContent = basic;
+    document.getElementById("premiumCount").textContent = premium;
+
+    // Update revenue
+    const revenue = (basic*6999) + (premium*9999); // Guest = 0
+    document.getElementById("revenueTotal").textContent = revenue.toLocaleString() + " PHP";
+
+    // Update User Counts total in stats
+    document.getElementById("userCountTotal").textContent = guest + basic + premium;
 
   }catch(e){console.error(e);}
 }
@@ -329,12 +342,14 @@ async function loadTaps(){
     const res = await fetch(`${API_BASE}/api/taps`);
     const taps = await res.json();
     const tbody = document.getElementById("tapsTable");
-    tbody.innerHTML = "";
-    taps.forEach(t=>{
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${t.uid}</td><td>${t.ts}</td>`;
-      tbody.appendChild(tr);
-    });
+    if(tbody){
+      tbody.innerHTML = "";
+      taps.forEach(t=>{
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${t.uid}</td><td>${t.ts}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
   }catch(e){console.error(e);}
 }
 loadTaps();
