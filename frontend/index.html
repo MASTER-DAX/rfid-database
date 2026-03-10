@@ -249,41 +249,28 @@ th{background:#3d4256;text-align:left;}
       </div>
 
       <!-- NEW TABLE: Latest RFID Taps -->
- <div class="card">
-  <h3>Latest RFID Taps</h3>
-  <div id="tapsContainer" style="max-height:200px; overflow-y:auto; margin-top:10px; transition: max-height 0.3s ease;">
-    <table>
-      <thead>
-        <tr>
-          <th>UID</th>
-          <th>Timestamp</th>
-        </tr>
-      </thead>
-      <tbody id="tapsTable"></tbody>
-    </table>
+      <div class="card">
+        <h3>Latest RFID Taps</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>UID</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody id="tapsTable"></tbody>
+        </table>
+      </div>
+
+    </div>
+
   </div>
-  <button class="btn mt-2" id="toggleTapsBtn">See More</button>
 </div>
 
 <script>
-const toggleBtn = document.getElementById("toggleTapsBtn");
-const tapsContainer = document.getElementById("tapsContainer");
-let expanded = false;
+const API_BASE = "";
 
-toggleBtn.addEventListener("click", () => {
-  if (!expanded) {
-    tapsContainer.style.maxHeight = "none";
-    tapsContainer.style.overflowY = "visible";
-    toggleBtn.textContent = "See Less";
-    expanded = true;
-  } else {
-    tapsContainer.style.maxHeight = "200px";
-    tapsContainer.style.overflowY = "auto";
-    toggleBtn.textContent = "See More";
-    expanded = false;
-  }
-});
-
+// ------------- USERS TABLE & ACTIVE GUESTS -------------
 async function loadUsers(){
   try{
     const res = await fetch(`${API_BASE}/api/users`);
