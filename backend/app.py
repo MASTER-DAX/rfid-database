@@ -25,6 +25,20 @@ app = Flask(__name__, static_folder="../frontend", static_url_path="")
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
 
+
+# -------------------------------------------------
+# GET RFID TAP HISTORY
+# -------------------------------------------------
+
+@app.route("/api/taps")
+def get_taps():
+
+    from db import taps
+
+    history = list(taps.find({}, {"_id":0}).sort("ts",-1).limit(50))
+
+    return jsonify(history)
+
 # -------------------------------------------------
 # HEALTH CHECK
 # -------------------------------------------------
