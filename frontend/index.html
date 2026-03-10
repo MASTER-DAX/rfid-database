@@ -179,7 +179,7 @@ th{background:#3d4256;text-align:left;}
       </table>
     </div>
 
-    <!-- CLOCK + SERVO CONTROL -->
+    <!-- CLOCK + SERVO CONTROL + COTTAGE STATUS + NEW TABLES -->
     <div class="grid gap-5">
 
       <div class="card">
@@ -196,40 +196,71 @@ th{background:#3d4256;text-align:left;}
         <p style="text-align:center; margin-top:5px;" id="servoStatus">Servo Status: Idle</p>
       </div>
 
-     <!-- Cottage Status Control -->
-<div class="card">
-  <h3>Cottages Status</h3>
+      <!-- Cottage Status Control -->
+      <div class="card">
+        <h3>Cottages Status</h3>
+        <div style="margin-top:10px;">
+          <label>Select Cottage</label>
+          <select id="cottageSelect">
+            <option value="1">Cottage 1</option>
+            <option value="2">Cottage 2</option>
+            <option value="3">Cottage 3</option>
+            <option value="4">Cottage 4</option>
+            <option value="5">Cottage 5</option>
+            <option value="6">Cottage 6</option>
+            <option value="7">Cottage 7</option>
+            <option value="8">Cottage 8</option>
+            <option value="9">Cottage 9</option>
+            <option value="10">Cottage 10</option>
+          </select>
+        </div>
+        <div style="margin-top:10px;">
+          <label>Status</label>
+          <select id="statusSelect">
+            <option value="active">ACTIVE</option>
+            <option value="inactive">INACTIVE</option>
+          </select>
+        </div>
+        <button onclick="setCottageStatus()" style="margin-top:10px;">
+          Update Status
+        </button>
+        <p id="statusResult"></p>
+      </div>
 
-  <div style="margin-top:10px;">
-    <label>Select Cottage</label>
-    <select id="cottageSelect">
-      <option value="1">Cottage 1</option>
-      <option value="2">Cottage 2</option>
-      <option value="3">Cottage 3</option>
-      <option value="4">Cottage 4</option>
-      <option value="5">Cottage 5</option>
-      <option value="6">Cottage 6</option>
-      <option value="7">Cottage 7</option>
-      <option value="8">Cottage 8</option>
-      <option value="9">Cottage 9</option>
-      <option value="10">Cottage 10</option>
-    </select>
-  </div>
+      <!-- NEW TABLE: User Counts -->
+      <div class="card">
+        <h3>User Counts by Level</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Guest</th>
+              <th>Basic</th>
+              <th>Premium</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td id="guestCount">0</td>
+              <td id="basicCount">0</td>
+              <td id="premiumCount">0</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-  <div style="margin-top:10px;">
-    <label>Status</label>
-    <select id="statusSelect">
-      <option value="active">ACTIVE</option>
-      <option value="inactive">INACTIVE</option>
-    </select>
-  </div>
-
-  <button onclick="setCottageStatus()" style="margin-top:10px;">
-    Update Status
-  </button>
-
-  <p id="statusResult"></p>
-</div>
+      <!-- NEW TABLE: Latest RFID Taps -->
+      <div class="card">
+        <h3>Latest RFID Taps</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>UID</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody id="tapsTable"></tbody>
+        </table>
+      </div>
 
     </div>
 
@@ -237,36 +268,9 @@ th{background:#3d4256;text-align:left;}
 </div>
 
 <script>
-async function setCottageStatus(){
-  let cottage = document.getElementById("cottageSelect").value;
-  let status = document.getElementById("statusSelect").value;
-
-  try{
-    let res = await fetch("/api/set_cottage_status",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify({
-        cottage:cottage,
-        status:status
-      })
-    });
-
-    let data = await res.json();
-    console.log("Server Response:", data);
-
-    document.getElementById("statusResult").innerText =
-      "Cottage " + cottage + " is now " + status.toUpperCase();
-
-  }catch(err){
-    document.getElementById("statusResult").innerText =
-      "Server error updating cottage status";
-    console.error(err);
-  }
-}
-
 const API_BASE = "";
+
+// ------------- USERS TABLE & ACTIVE GUESTS -------------
 async function loadUsers(){
   try{
     const res = await fetch(`${API_BASE}/api/users`);
@@ -286,14 +290,64 @@ async function loadUsers(){
       `;
       tbody.appendChild(tr);
     });
+
+    // Update counts table
+    const countsRes = await fetch(`${API_BASE}/api/user_counts`);
+    const counts = await countsRes.json();
+    document.getElementById("guestCount").textContent = counts.guest || 0;
+    document.getElementById("basicCount").textContent = counts.basic || 0;
+    document.getElementById("premiumCount").textContent = counts.premium || 0;
+
   }catch(e){console.error(e);}
 }
+
+// ------------- REFRESH BUTTON -------------
 document.getElementById("refreshBtn").onclick = loadUsers;
 loadUsers();
+
+// ------------- COTTAGE STATUS -------------
+async function setCottageStatus(){
+  let cottage = document.getElementById("cottageSelect").value;
+  let status = document.getElementById("statusSelect").value;
+
+  try{
+    let res = await fetch("/api/set_cottage_status",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({cottage,status})
+    });
+    let data = await res.json();
+
+    document.getElementById("statusResult").innerText =
+      "Cottage " + cottage + " is now " + status.toUpperCase();
+
+  }catch(err){
+    document.getElementById("statusResult").innerText = "Server error updating cottage status";
+    console.error(err);
+  }
+}
+
+// ------------- RFID TAPS -------------
+async function loadTaps(){
+  try{
+    const res = await fetch(`${API_BASE}/api/taps`);
+    const taps = await res.json();
+    const tbody = document.getElementById("tapsTable");
+    tbody.innerHTML = "";
+    taps.forEach(t=>{
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${t.uid}</td><td>${t.ts}</td>`;
+      tbody.appendChild(tr);
+    });
+  }catch(e){console.error(e);}
+}
+loadTaps();
+setInterval(loadTaps, 5000); // auto-refresh taps every 5s
+
 </script>
 
+<!-- ==================== SERVO CLOCK LOGIC ==================== -->
 <script>
-/*********** SERVO CLOCK LOGIC ***********/
 const ESP_IP = "192.168.100.235";
 const canvas = document.getElementById("clockCanvas");
 const ctx = canvas.getContext("2d");
