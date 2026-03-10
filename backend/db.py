@@ -86,7 +86,7 @@ def trigger_buzzer_event(uid):
 
     taps.insert_one({
         "uid": uid,
-        "ts": datetime.utcnow()
+        "ts": datetime.utcnow().isoformat()
     })
 
 
