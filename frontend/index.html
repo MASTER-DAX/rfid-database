@@ -480,22 +480,17 @@ function drawClock(){
 }
 
 function updateTime(){
-  currentSecond++;
-  if(currentSecond>=60){
-    currentSecond=0;
-    currentMinute++;
-  }
-  if(currentMinute>=60){
-    currentMinute=0;
-    currentHour++;
-  }
-  if(currentHour>=24) currentHour=0;
+  const now = new Date();
+
+  currentHour = now.getHours();
+  currentMinute = now.getMinutes();
+  currentSecond = now.getSeconds();
 
   drawClock();
 }
 
-setInterval(updateTime,1000);
-drawClock();
+  updateTime();
+setInterval(updateTime, 1000);
   
 </script>
 
