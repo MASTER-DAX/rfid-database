@@ -238,6 +238,28 @@ th{background:#3d4256;text-align:left;}
         <p id="statusResult"></p>
       </div>
 
+      <div class="card">
+      <h3>Device Status</h3>
+      
+      <table>
+      <thead>
+      <tr>
+      <th>Device</th>
+      <th>Status</th>
+      </tr>
+      </thead>
+      
+      <tbody id="devicesTable"></tbody>
+      
+      </table>
+      </div>
+
+      <div class="card">
+<h3>Cottage Status List</h3>
+
+<div id="cottagesList"></div>
+
+</div>
       <!-- NEW TABLE: User Counts -->
       <div class="card">
         <h3>User Counts by Level</h3>
@@ -267,6 +289,74 @@ th{background:#3d4256;text-align:left;}
 <script>
 const API_BASE = "";
 
+
+
+async function loadCottages(){
+
+  const res = await fetch("/api/cottages");
+  const data = await res.json();
+
+  const list = document.getElementById("cottagesList");
+
+  list.innerHTML = "";
+
+  data.forEach(c=>{
+
+    const div = document.createElement("div");
+
+    div.innerHTML = `
+      Cottage ${c.cottage}
+      <strong style="color:${c.status==="active"?"lightgreen":"red"}">
+      ${c.status.toUpperCase()}
+      </strong>
+    `;
+
+    list.appendChild(div);
+
+  });
+
+}
+
+loadCottages();
+setInterval(loadCottages,5000);
+  
+async function loadDevices(){
+
+  try{
+
+    const res = await fetch("/api/devices");
+    const devices = await res.json();
+
+    const tbody = document.getElementById("devicesTable");
+    tbody.innerHTML = "";
+
+    devices.forEach(d=>{
+
+      const status = d.status;
+
+      Object.keys(status).forEach(deviceName=>{
+
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+          <td>${deviceName.replace("_"," ")}</td>
+          <td>${status[deviceName]}</td>
+        `;
+
+        tbody.appendChild(tr);
+
+      });
+
+    });
+
+  }catch(e){
+    console.error(e);
+  }
+
+}
+
+loadDevices();
+setInterval(loadDevices,5000);
 // ------------- USERS TABLE & ACTIVE GUESTS -------------
 async function loadUsers(){
   try{
