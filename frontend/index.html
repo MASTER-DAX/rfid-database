@@ -192,14 +192,18 @@ th{background:#3d4256;text-align:left;}
       <div class="card">
         <h3>Privacy Simulation</h3>
         <canvas id="clockCanvas" width="250" height="250"></canvas>
-        <div class="servo-container" style="margin-top:10px; display:flex; justify-content:center; gap:10px;">
-          <input type="number" id="hourInput" min="0" max="23" value="6"/>
-          <select id="ampmInput">
-            <option value="AM">AM</option>
-            <option value="PM">PM</option>
-          </select>
-          <button class="btn" id="setTimeBtn">Set</button>
-        </div>
+      <div class="servo-container" style="margin-top:10px; display:flex; justify-content:center; gap:10px;">
+        <input type="number" id="hourInput" min="0" max="23" value="6"/>
+      
+        <input type="number" id="minuteInput" min="0" max="59" value="0"/>
+      
+        <select id="ampmInput">
+          <option value="AM">AM</option>
+          <option value="PM">PM</option>
+        </select>
+      
+        <button class="btn" id="setTimeBtn">Set</button>
+      </div>
         <p style="text-align:center; margin-top:5px;" id="servoStatus">Servo Status: Idle</p>
       </div>
 
@@ -341,19 +345,19 @@ async function setCottageStatus(){
 document.getElementById("setTimeBtn").onclick = async () => {
 
   const hour = parseInt(document.getElementById("hourInput").value);
+  const minute = parseInt(document.getElementById("minuteInput").value);
   const ampm = document.getElementById("ampmInput").value;
 
   let command = null;
 
   // 6 PM → RIGHT
-  if(hour === 6 && ampm === "PM"){
-    command = "right";
-  }
+if(hour === 6 && minute === 00 && ampm === "PM"){
+  command = "right";
+}
 
-  // 6 AM → LEFT
-  if(hour === 6 && ampm === "AM"){
-    command = "left";
-  }
+if(hour === 6 && minute === 00 && ampm === "AM"){
+  command = "left";
+}
 
   if(!command){
     document.getElementById("servoStatus").innerText =
@@ -405,6 +409,94 @@ async function loadTaps(){
 loadTaps();
 setInterval(loadTaps, 5000); // auto-refresh taps every 5s
 
+
+
+// ================= CLOCK DRAWING =================
+
+const canvas = document.getElementById("clockCanvas");
+const ctx = canvas.getContext("2d");
+const radius = canvas.width / 2;
+
+ctx.translate(radius, radius);
+
+let currentHour = 6;
+let currentMinute = 0;
+let currentSecond = 0;
+
+function drawClock(){
+
+  ctx.clearRect(-radius, -radius, canvas.width, canvas.height);
+
+  // Clock Background
+  ctx.beginPath();
+  ctx.arc(0, 0, radius - 5, 0, 2 * Math.PI);
+  ctx.fillStyle = "#3a3f50";
+  ctx.fill();
+
+  ctx.strokeStyle = "#aaaaaa";
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  // Hour Marks
+  for(let i=0;i<12;i++){
+    let angle = i * Math.PI / 6;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(angle)*(radius-15), Math.sin(angle)*(radius-15));
+    ctx.lineTo(Math.cos(angle)*(radius-25), Math.sin(angle)*(radius-25));
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
+
+  // Hour Hand
+  let hourAngle = (currentHour % 12 + currentMinute/60) * Math.PI/6;
+  ctx.beginPath();
+  ctx.moveTo(0,0);
+  ctx.lineTo(Math.cos(hourAngle - Math.PI/2)*(radius-60),
+             Math.sin(hourAngle - Math.PI/2)*(radius-60));
+  ctx.strokeStyle="#ffffff";
+  ctx.lineWidth=6;
+  ctx.stroke();
+
+  // Minute Hand
+  let minAngle = (currentMinute/60) * 2*Math.PI;
+  ctx.beginPath();
+  ctx.moveTo(0,0);
+  ctx.lineTo(Math.cos(minAngle - Math.PI/2)*(radius-40),
+             Math.sin(minAngle - Math.PI/2)*(radius-40));
+  ctx.strokeStyle="#aaaaaa";
+  ctx.lineWidth=4;
+  ctx.stroke();
+
+  // Second Hand
+  let secAngle = (currentSecond/60) * 2*Math.PI;
+  ctx.beginPath();
+  ctx.moveTo(0,0);
+  ctx.lineTo(Math.cos(secAngle - Math.PI/2)*(radius-30),
+             Math.sin(secAngle - Math.PI/2)*(radius-30));
+  ctx.strokeStyle="#ffffff";
+  ctx.lineWidth=2;
+  ctx.stroke();
+}
+
+function updateTime(){
+  currentSecond++;
+  if(currentSecond>=60){
+    currentSecond=0;
+    currentMinute++;
+  }
+  if(currentMinute>=60){
+    currentMinute=0;
+    currentHour++;
+  }
+  if(currentHour>=24) currentHour=0;
+
+  drawClock();
+}
+
+setInterval(updateTime,1000);
+drawClock();
+  
 </script>
 
 </body>
