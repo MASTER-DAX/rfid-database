@@ -27,6 +27,17 @@ socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
 
 
 # -------------------------------------------------
+# GET ALL SMART DEVICES
+# -------------------------------------------------
+
+@app.route("/api/devices")
+def get_devices():
+    from db import get_all_devices
+    devs = get_all_devices()
+    return jsonify(devs)
+
+
+# -------------------------------------------------
 # GET RFID TAP HISTORY
 # -------------------------------------------------
 
