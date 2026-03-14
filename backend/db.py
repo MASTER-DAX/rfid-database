@@ -22,6 +22,17 @@ users = db["users"]
 taps = db["taps"]
 cottages = db["cottages"]
 
+
+# ------------------------
+# SMART DEVICES
+# ------------------------
+
+smart_db = client["smart_cottage"]
+devices = smart_db["devices"]
+
+def get_all_devices():
+    return list(devices.find({}, {"_id": 0}))
+
 # ------------------------
 # USER OPERATIONS
 # ------------------------
