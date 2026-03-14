@@ -336,6 +336,56 @@ async function setCottageStatus(){
   }
 }
 
+  // ---------------- SERVO CONTROL ----------------
+
+document.getElementById("setTimeBtn").onclick = async () => {
+
+  const hour = parseInt(document.getElementById("hourInput").value);
+  const ampm = document.getElementById("ampmInput").value;
+
+  let command = null;
+
+  // 6 PM → RIGHT
+  if(hour === 6 && ampm === "PM"){
+    command = "right";
+  }
+
+  // 6 AM → LEFT
+  if(hour === 6 && ampm === "AM"){
+    command = "left";
+  }
+
+  if(!command){
+    document.getElementById("servoStatus").innerText =
+    "Servo Status: No action for this time";
+    return;
+  }
+
+  try{
+
+    const res = await fetch("/api/set_servo",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        command: command
+      })
+    });
+
+    const data = await res.json();
+
+    if(data.success){
+      document.getElementById("servoStatus").innerText =
+      "Servo Command Sent: " + command.toUpperCase();
+    }
+
+  }catch(err){
+    console.error(err);
+  }
+
+};
+
 // ------------- RFID TAPS -------------
 async function loadTaps(){
   try{
