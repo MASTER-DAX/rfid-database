@@ -328,6 +328,11 @@ def login_rfid():
     })
 
 
+
+@app.route("/api/cottages")
+def cottages():
+    cottages = get_all_cottages()
+    return jsonify(cottages)
 # -------------------------------------------------
 # COTTAGE STATUS
 # -------------------------------------------------
