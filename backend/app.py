@@ -40,6 +40,34 @@ def get_taps():
     return jsonify(history)
 
 # -------------------------------------------------
+# SERVO COMMAND
+# -------------------------------------------------
+
+servo_state = {"command": "none"}
+
+@app.route("/api/set_servo", methods=["POST"])
+def set_servo():
+
+    global servo_state
+
+    data = request.get_json()
+
+    command = data.get("command")
+
+    if command not in ["left", "right"]:
+        return jsonify({"error":"invalid command"}), 400
+
+    servo_state["command"] = command
+
+    return jsonify({"success":True})
+
+
+@app.route("/api/get_servo")
+def get_servo():
+
+    return jsonify(servo_state)
+
+# -------------------------------------------------
 # HEALTH CHECK
 # -------------------------------------------------
 
