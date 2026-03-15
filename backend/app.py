@@ -93,13 +93,8 @@ def get_servo():
 
     global servo_state
 
-    command = servo_state["command"]
-
-    # reset after reading
-    servo_state["command"] = "none"
-
     return jsonify({
-        "command": command
+        "command": servo_state["command"]
     })
 
 # -------------------------------------------------
