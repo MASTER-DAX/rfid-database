@@ -4,9 +4,10 @@ import os
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_socketio import SocketIO
-from datetime import datetime
 import threading
 import time
+from datetime import datetime, timedelta
+
 
 servo_state = {"command": "none"}
 
@@ -90,7 +91,16 @@ def set_servo():
 @app.route("/api/get_servo")
 def get_servo():
 
-    return jsonify(servo_state)
+    global servo_state
+
+    command = servo_state["command"]
+
+    # reset after reading
+    servo_state["command"] = "none"
+
+    return jsonify({
+        "command": command
+    })
 
 # -------------------------------------------------
 # HEALTH CHECK
@@ -272,40 +282,56 @@ def register_card():
 
     return jsonify({"status": "saved"})
 
+
+# -------------------------------------------------
+# SET SERVO SCHEDULE
+# -------------------------------------------------
+
 @app.route("/api/set_servo_schedule", methods=["POST"])
 def set_servo_schedule():
 
+    global servo_schedule
+
     data = request.get_json()
 
-    servo_schedule["hour"] = data.get("hour")
-    servo_schedule["minute"] = data.get("minute")
-    servo_schedule["command"] = data.get("command")
+    hour = data.get("hour")
+    minute = data.get("minute")
+    command = data.get("command")
+
+    if hour is None or minute is None or command is None:
+        return jsonify({"error": "missing data"}), 400
+
+    servo_schedule["hour"] = int(hour)
+    servo_schedule["minute"] = int(minute)
+    servo_schedule["command"] = command
+
+    print("Servo schedule set:", servo_schedule)
 
     return jsonify({"success": True})
-
+    
 def servo_scheduler():
 
     global servo_state
 
     while True:
 
-        now = datetime.now()
+        now = datetime.utcnow() + timedelta(hours=8)
 
         h = now.hour
         m = now.minute
 
         if (
-                servo_schedule["hour"] is not None and
-                servo_schedule["minute"] is not None and
-                servo_schedule["hour"] == h and
-                servo_schedule["minute"] == m
-            ):
+            servo_schedule["hour"] is not None and
+            servo_schedule["minute"] is not None and
+            servo_schedule["hour"] == h and
+            servo_schedule["minute"] == m
+        ):
 
             servo_state["command"] = servo_schedule["command"]
 
             print("Servo triggered:", servo_schedule["command"])
 
-            time.sleep(60)
+            time.sleep(60)  # avoid repeat within same minute
 
         time.sleep(1)
     
