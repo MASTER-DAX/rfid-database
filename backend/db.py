@@ -21,6 +21,7 @@ db = client["rfid_system"]
 users = db["users"]
 taps = db["taps"]
 cottages = db["cottages"]
+servo_schedule_col = db["servo_schedule"]
 
 
 # ------------------------
@@ -123,6 +124,19 @@ def count_users_by_access_level():
 
     return counts
 
+def set_servo_schedule(hour, minute, command):
+
+    servo_schedule_col.update_one(
+        {"type": "daily"},
+        {
+            "$set": {
+                "hour": hour,
+                "minute": minute,
+                "command": command
+            }
+        },
+        upsert=True
+    )
 
 # ------------------------
 # COTTAGE STATUS
@@ -146,7 +160,10 @@ def set_cottage_status(cottage, status):
         upsert=True
     )
 
+def get_servo_schedule():
 
+    return servo_schedule_col.find_one({"type": "daily"})
+    
 def get_all_cottages():
 
     return list(cottages.find({}, {"_id": 0}))
