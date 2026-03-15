@@ -190,21 +190,29 @@ th{background:#3d4256;text-align:left;}
     <div class="grid gap-5">
 
       <div class="card">
-        <h3>Privacy Simulation</h3>
-        <canvas id="clockCanvas" width="250" height="250"></canvas>
-      <div class="servo-container" style="margin-top:10px; display:flex; justify-content:center; gap:10px;">
-        <input type="number" id="hourInput" min="0" max="23" value="6"/>
+      <h3>Privacy Simulation</h3>
       
-        <input type="number" id="minuteInput" min="0" max="59" value="0"/>
+      <canvas id="clockCanvas" width="250" height="250"></canvas>
       
-        <select id="ampmInput">
-          <option value="AM">AM</option>
-          <option value="PM">PM</option>
-        </select>
+     <div class="servo-container" style="margin-top:15px; display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
       
-        <button class="btn" id="setTimeBtn">Set</button>
+      <input type="number" id="hourInput" min="0" max="23" placeholder="Hour">
+      
+      <input type="number" id="minuteInput" min="0" max="59" placeholder="Minute">
+      
+      <select id="actionSelect">
+      <option value="right">OPEN</option>
+      <option value="left">CLOSE</option>
+      </select>
+      
+      <button class="btn" id="setScheduleBtn">Update</button>
+      
       </div>
-        <p style="text-align:center; margin-top:5px;" id="servoStatus">Servo Status: Idle</p>
+      
+      <p style="text-align:center;margin-top:5px;" id="servoStatus">
+      Servo Status: Waiting
+      </p>
+      
       </div>
 
       <!-- Cottage Status Control -->
@@ -432,54 +440,56 @@ async function setCottageStatus(){
 
   // ---------------- SERVO CONTROL ----------------
 
-document.getElementById("setTimeBtn").onclick = async () => {
+document.getElementById("setScheduleBtn").onclick = async () => {
 
-  const hour = parseInt(document.getElementById("hourInput").value);
-  const minute = parseInt(document.getElementById("minuteInput").value);
-  const ampm = document.getElementById("ampmInput").value;
+const hour = parseInt(document.getElementById("hourInput").value);
+const minute = parseInt(document.getElementById("minuteInput").value);
 
-  let command = null;
-
-  // 6 PM → RIGHT
-if(hour === 6 && minute === 00 && ampm === "PM"){
-  command = "right";
+if(isNaN(hour) || isNaN(minute)){
+alert("Please enter valid hour and minute");
+return;
 }
 
-if(hour === 6 && minute === 00 && ampm === "AM"){
-  command = "left";
+if(hour > 23 || minute > 59){
+alert("Invalid time");
+return;
 }
 
-  if(!command){
-    document.getElementById("servoStatus").innerText =
-    "Servo Status: No action for this time";
-    return;
-  }
+const action = document.getElementById("actionSelect").value;
 
-  try{
+try{
 
-    const res = await fetch("/api/set_servo",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify({
-        command: command
-      })
-    });
+const res = await fetch("/api/set_servo_schedule",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+hour:hour,
+minute:minute,
+command:action
+})
+});
 
-    const data = await res.json();
+const data = await res.json();
 
-    if(data.success){
-      document.getElementById("servoStatus").innerText =
-      "Servo Command Sent: " + command.toUpperCase();
-    }
+if(data.success){
 
-  }catch(err){
-    console.error(err);
-  }
+const timeStr =
+hour.toString().padStart(2,'0') + ":" +
+minute.toString().padStart(2,'0');
+
+document.getElementById("servoStatus").innerText =
+"Servo scheduled at " + timeStr + " → " + action.toUpperCase();
+
+}
+
+}catch(err){
+console.error(err);
+}
 
 };
-
+  
 // ------------- RFID TAPS -------------
 async function loadTaps(){
   try{
