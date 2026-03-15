@@ -4,6 +4,17 @@ import os
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_socketio import SocketIO
+from datetime import datetime
+import threading
+import time
+
+servo_state = {"command": "none"}
+
+servo_schedule = {
+    "hour": None,
+    "minute": None,
+    "command": None
+}
 
 from db import get_users
 from db import (
@@ -58,7 +69,6 @@ def get_taps():
 # SERVO COMMAND
 # -------------------------------------------------
 
-servo_state = {"command": "none"}
 
 @app.route("/api/set_servo", methods=["POST"])
 def set_servo():
@@ -262,7 +272,43 @@ def register_card():
 
     return jsonify({"status": "saved"})
 
+@app.route("/api/set_servo_schedule", methods=["POST"])
+def set_servo_schedule():
 
+    data = request.get_json()
+
+    servo_schedule["hour"] = data.get("hour")
+    servo_schedule["minute"] = data.get("minute")
+    servo_schedule["command"] = data.get("command")
+
+    return jsonify({"success": True})
+
+def servo_scheduler():
+
+    global servo_state
+
+    while True:
+
+        now = datetime.now()
+
+        h = now.hour
+        m = now.minute
+
+        if (
+                servo_schedule["hour"] is not None and
+                servo_schedule["minute"] is not None and
+                servo_schedule["hour"] == h and
+                servo_schedule["minute"] == m
+            ):
+
+            servo_state["command"] = servo_schedule["command"]
+
+            print("Servo triggered:", servo_schedule["command"])
+
+            time.sleep(60)
+
+        time.sleep(1)
+    
 # -------------------------------------------------
 # DASHBOARD: Get Users
 # -------------------------------------------------
@@ -371,8 +417,15 @@ def update_cottage_status():
 # -------------------------------------------------
 # RUN SERVER
 # -------------------------------------------------
+# -------------------------------------------------
+# RUN SERVER
+# -------------------------------------------------
 
 if __name__ == "__main__":
+
+    scheduler_thread = threading.Thread(target=servo_scheduler)
+    scheduler_thread.daemon = True
+    scheduler_thread.start()
 
     port = int(os.environ.get("PORT", 10000))
 
